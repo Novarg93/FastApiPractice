@@ -21,11 +21,15 @@ npm run dev
 
 Backend
 ````````
-cd backend
 python -m venv venv
+venv\Scripts\activate
+pip install python-dotenv
+pip install asyncpg
+cd backend
+
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-
+venv\Scripts\activate
 uvicorn main:app --reload
 
 
