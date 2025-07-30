@@ -3,4 +3,5 @@ from dotenv import load_dotenv
 
 load_dotenv() 
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./app.db")
+DATABASE_URL = "postgresql+asyncpg://username:password@localhost:5432/mydatabase"
+
