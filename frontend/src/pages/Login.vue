@@ -20,6 +20,7 @@ const password = ref('')
 const remember = ref(false)
 const isLoading = ref(false)
 const router = useRouter()
+
 const errors = ref<{ [key: string]: string }>({})
 
 const login = async () => {
@@ -52,7 +53,13 @@ const login = async () => {
 }
 
 
-
+// ответ от FastApi и  в теле : 
+//  {
+//   "detail": [
+//     { "loc": ["body", "email"], "msg": "Invalid email", "type": "value_error" },
+//     { "loc": ["body", "password"], "msg": "Too short", "type": "value_error" }
+//   ]
+// }
 
 </script>
 
