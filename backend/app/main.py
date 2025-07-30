@@ -1,17 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from database.init_db import init_db
-from routes.items import router as items_router
+
+from database.session import engine, Base
+from routes import items, orders, payments, auth
 
 import uvicorn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
 
 app = FastAPI(lifespan=lifespan)
+from routes import items, orders, payments, auth
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,11 +24,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(items.router, prefix="/items", tags=["items"])
+app.include_router(orders.router, prefix="/orders", tags=["orders"])
+app.include_router(payments.router, prefix="/payments", tags=["payments"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+
 @app.get("/")
 async def read_root():
     return {"message": "Привет от FastAPI!"}
-
-app.include_router(items_router, prefix="/items")
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
