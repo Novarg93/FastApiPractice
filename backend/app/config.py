@@ -3,5 +3,4 @@ from dotenv import load_dotenv
 
 load_dotenv() 
 
-DATABASE_URL = "postgresql+asyncpg://username:password@localhost:5432/mydatabase"
-
+DATABASE_URL = "postgresql+asyncpg://postgres:1234@localhost:5432/currency"
