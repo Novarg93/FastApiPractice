@@ -1,15 +1,35 @@
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import Hero from '@/components/Hero.vue';
+import Benefits from '@/components/Benefits.vue';
+import Features from '@/components/Features.vue';
+import Services from '@/components/Services.vue';
+import HowItWorks from '@/components/HowItWorks.vue';
+import Testimonials from '@/components/Testimonials.vue';
+import Team from '@/components/Team.vue';
+import Community from '@/components/Community.vue';
+import Pricing from '@/components/Pricing.vue';
+import Contact from '@/components/Contact.vue';
+import FAQ from '@/components/FAQ.vue'
 
-
-
+const route = useRoute()
 </script>
 
 <template>
-  <nav class="flex flex-col gap-2">
-    <router-link to="/">Welcome</router-link>
-    <router-link to="/login">Login</router-link>
-    <router-link to="/register">Register</router-link>
-    <router-link to="/forgot-password">Forgot Password</router-link>
-    <router-link to="/catalog">Catalog</router-link>
-  </nav>
+  
+   <DefaultLayout>
+    <Hero/>
+    <Benefits/>
+    <Features/>
+    <Services/>
+    <HowItWorks/>
+    <Testimonials/>
+    <Team/>
+    <Community/>
+    <Pricing/>
+    <Contact/>
+    <FAQ/>
+   </DefaultLayout> 
+  
 </template>

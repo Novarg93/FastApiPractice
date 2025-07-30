@@ -30,7 +30,7 @@ cd backend
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 venv\Scripts\activate
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 
 
 
