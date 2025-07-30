@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import Hero from '@/components/Hero.vue';
 import Benefits from '@/components/Benefits.vue';
@@ -13,7 +12,7 @@ import Pricing from '@/components/Pricing.vue';
 import Contact from '@/components/Contact.vue';
 import FAQ from '@/components/FAQ.vue'
 
-const route = useRoute()
+
 </script>
 
 <template>
