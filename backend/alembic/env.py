@@ -10,7 +10,6 @@ import os, sys
 # access to the values within the .ini file in use.
 config = context.config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from database.session import Base
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -22,6 +21,8 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata  
+from database.session import Base
+from models import items
 
 config = context.config
 fileConfig(config.config_file_name)

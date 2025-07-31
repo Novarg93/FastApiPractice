@@ -14,7 +14,6 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-from routes import items, orders, payments, auth
 
 app.add_middleware(
     CORSMiddleware,
