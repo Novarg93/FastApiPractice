@@ -58,7 +58,7 @@ const data = {
 }
 </script>
 <template>
-  <Sidebar class="border-border " v-bind="props">
+  <Sidebar class="border-transparent bg-muted/30  " v-bind="props">
     <SidebarHeader>
       <AppLogoIcon class="mt-2 0  "/>
     </SidebarHeader>

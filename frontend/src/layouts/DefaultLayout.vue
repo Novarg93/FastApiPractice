@@ -93,7 +93,7 @@ const isOpen = ref<boolean>(false);
             <nav class="hidden lg:block">
                 <ul class="flex gap-4 items-center">
                     <li>
-                        <router-link class="hover:underline " to="/Dashboard">Dashboard</router-link>
+                        <router-link class="hover:underline " to="/dashboard">Dashboard</router-link>
                     </li>
                     <li>
                         <router-link class="hover:underline " to="/login">FAQ</router-link>
