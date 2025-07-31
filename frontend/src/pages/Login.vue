@@ -8,11 +8,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue'
-
 import { LoaderCircle } from 'lucide-vue-next';
 import axios from 'axios';
 import { ref } from 'vue';
-
 
 
 const email = ref('')

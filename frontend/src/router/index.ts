@@ -6,6 +6,7 @@ import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
 import ForgotPassword from '@/pages/ForgotPassword.vue'
 import Catalog from '@/pages/Catalog.vue'
+import Dashboard from '@/pages/Dashboard.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,26 +15,55 @@ const router = createRouter({
       path: '/',
       name: 'Welcome',
       component: Welcome,
+      meta: {
+      title: 'ShadcnVue',
+      description: 'Welcome to ShadcnVue Project',
+    },
     },
     {
       path: '/login',
       name: 'Login',
       component: Login,
+      meta: {
+      title: 'Login - ShadcnVue',
+      description: 'Login to your account in ShadcnVue Project',
+    },
     },
     {
       path: '/register',
       name: 'Register',
       component: Register,
+        meta: {
+      title: 'Register - ShadcnVue',
+      description: 'Register your account in ShadcnVue Project',
+    },
     },
     {
       path: '/forgot-password',
       name: 'ForgotPassword',
       component: ForgotPassword,
+        meta: {
+      title: 'Forgot Password - ShadcnVue',
+      description: 'Reset your password and regain access to your account',
+    },
     },
     {
       path: '/catalog',
       name: 'Catalog',
       component: Catalog,
+      meta: {
+      title: 'Catalog - ShadcnVue',
+      description: 'Catalog',
+    },
+    },
+    {
+      path: '/dashboard',
+      name: 'Dashboard',
+      component: Dashboard,
+      meta: {
+      title: 'Dashboard - ShadcnVue',
+      description: 'Your personel dashboard in ShadcnVue',
+    },
     },
   ],
 })
