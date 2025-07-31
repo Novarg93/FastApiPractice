@@ -40,13 +40,6 @@ const addToCartAndNotify = (item:Product) => {
 
 
 
-
-
-
-
-
-
-
 const data = ref<Product[]>([
   {
   id:1,
@@ -207,7 +200,7 @@ onMounted(() => {
     <section class=" w-[90%] 2xl:w-[75%]  mx-auto  rounded  mt-10">
     <div>      
 
-      <div class="flex justify-between w-full p-2">
+      <div class="flex flex-col items-center gap-4 justify-between w-full p-2">
         <div>
           <span class="text-xl">Товаров всего: {{ totalPages * limit }}</span>
         </div>
@@ -224,8 +217,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="flex flex-wrap w-full gap-4  justify-between items-center">
-        <Card v-for="item in data" :key="item.id"  class="bg-muted/60 dark:bg-card flex flex-col w-[18%] h-full overflow-hidden group/hoverimg border-border">
+      <div class="flex flex-wrap w-full gap-4 mt-4  justify-between items-center">
+        <Card v-for="item in data" :key="item.id"  class="bg-muted/60 dark:bg-card flex flex-col w-full  max-w-xs md:max-w-none mx-auto md:w-[30%] lg:w-[23%] xl:w-[20%]  2xl:w-[18%] h-full overflow-hidden group/hoverimg border-border">
           <CardHeader class="p-0 gap-0">
           <div class="h-full overflow-hidden">
             <img
@@ -247,7 +240,7 @@ onMounted(() => {
         </CardContent>
 
         <CardFooter class="space-x-4 mt-auto">
-          <Button class="cursor-pointer">
+          <Button class="cursor-pointer w-full">
             <ShoppingCart /> Add to cart
           </Button>
         </CardFooter>
