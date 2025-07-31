@@ -8,7 +8,16 @@ import { X } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth'
 import Pagination from '@/components/Pagination.vue';
 import { useRoute, useRouter } from 'vue-router'
-
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import { description } from './Dashboard.vue';
+import Button from '@/components/ui/button/Button.vue';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 
 const auth = useAuthStore()
 
@@ -38,13 +47,76 @@ const addToCartAndNotify = (item:Product) => {
 
 
 
-const data = ref<Product[]>([])
+const data = ref<Product[]>([
+  {
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},
+{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},{
+  id:1,
+  title:'Test',
+  price:1200,
+  description:'kekcheburek',
+  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
+},
+])
 
 const newTitle = ref('')
 const count = ref(0)
 const currentPage = ref(1)
 const searchQuery = ref('')
-const limit = 5
+const limit = 10
 const totalPages = ref(1);
 
 
@@ -130,24 +202,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="bg-[#18181b] w-11/12 border rounded mx-auto mt-10">
-    <div>
-      <div class="text-center mt-4">
-        <router-link
-          v-if="!auth.isAuthenticated"
-          class="text-2xl underline w-full hover:text-green-400"
-          to="/login"
-        >
-          Login
-        </router-link>
-        <router-link
-          v-else
-          class="text-2xl underline w-full hover:text-green-400"
-          to="/dashboard"
-        >
-          Go to Dashboard
-        </router-link>
-      </div>
+
+  <DefaultLayout>
+    <section class=" w-[90%] 2xl:w-[75%]  mx-auto  rounded  mt-10">
+    <div>      
 
       <div class="flex justify-between w-full p-2">
         <div>
@@ -166,16 +224,45 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="flex w-full gap-4 items-center">
-        <div v-for="item in data" :key="item.id" class="flex w-1/5 flex-col items-center p-2 gap-4">
+      <div class="flex flex-wrap w-full gap-4  justify-between items-center">
+        <Card v-for="item in data" :key="item.id"  class="bg-muted/60 dark:bg-card flex flex-col w-[18%] h-full overflow-hidden group/hoverimg border-border">
+          <CardHeader class="p-0 gap-0">
+          <div class="h-full overflow-hidden">
+            <img
+              :src="item.image_url"
+              alt=""
+              class="w-full aspect-square object-cover saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]"
+            />
+          </div>
+          <CardTitle class="py-6 pb-4 px-6"
+            >
+            <span class="hover:text-primary cursor-pointer">{{  item.title  }}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent    
+          class='text-muted-foreground '            
+          
+        >
+          {{ item.price }} $
+        </CardContent>
+
+        <CardFooter class="space-x-4 mt-auto">
+          <Button class="cursor-pointer">
+            <ShoppingCart /> Add to cart
+          </Button>
+        </CardFooter>
+        </Card>
+
+
+        <!-- <div v-for="item in data" :key="item.id" class="flex w-[18%] flex-col items-center p-2 gap-4">
           <div class="w-full relative">
             <img class="rounded" :src="item.image_url" :alt="item.title">
-            <button
+            <Button
               @click="addToCartAndNotify(item)"
               class="hover:text-[#34d399] cursor-pointer transition-colors flex items-center gap-4 p-2 border rounded w-9/10 justify-center bg-black/40 absolute bottom-1 left-4"
             >
               <ShoppingCart /> Add to cart
-            </button>
+            </Button>
           </div>
           <router-link
             :to="`/product/${item.id}`"
@@ -184,7 +271,7 @@ onMounted(() => {
             {{ item.title }}
           </router-link>
           <span>{{ item.price }} руб.</span>
-        </div>
+        </div> -->
       </div>
 
       <div class="flex gap-2 items-center place-self-center my-10">
@@ -197,4 +284,7 @@ onMounted(() => {
       </div>
     </div>
   </section>
+  </DefaultLayout>
+
+  
 </template>

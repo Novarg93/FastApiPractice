@@ -96,7 +96,7 @@ const isOpen = ref<boolean>(false);
                         <router-link class="hover:underline " to="/dashboard">Dashboard</router-link>
                     </li>
                     <li>
-                        <router-link class="hover:underline " to="/login">FAQ</router-link>
+                        <router-link class="hover:underline " to="/catalog">Catalog</router-link>
                     </li>
                     <li>
                         <router-link class="hover:underline " to="/login">Reviews</router-link>

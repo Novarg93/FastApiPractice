@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { defineProps, defineEmits } from 'vue';
-import { Button } from './ui/button';
+import Button from '@/components/ui/button/Button.vue';
 
 
 
