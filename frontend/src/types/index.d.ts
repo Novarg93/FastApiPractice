@@ -6,3 +6,12 @@ export interface NavItem {
     icon?: LucideIcon;
     isActive?: boolean;
 }
+
+export interface Product {
+  id: number
+  title: string
+  price:number
+  description: string
+  image_url: string
+  quantity?:number
+}

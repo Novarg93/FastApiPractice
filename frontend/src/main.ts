@@ -5,11 +5,15 @@ import { createHead } from '@vueuse/head'
 import App from './App.vue'
 import router from './router'
 
+import 'vue-toastification/dist/index.css'
+import Toast from 'vue-toastification'
+
 const app = createApp(App)
 const head = createHead()
 app.use(head)
 app.use(createPinia())
 app.use(router)
+app.use(Toast, { position: 'top-right' })
 
 router.afterEach((to) => {
   head.push({
