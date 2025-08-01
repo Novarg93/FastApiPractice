@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-
+#че я тут наворотил блять
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['http://localhost:5173'],
