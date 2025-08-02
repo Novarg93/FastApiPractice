@@ -1,37 +1,91 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
+from schemas.order import OrderRead      # Импорт для истории заказов
+from schemas.items import ItemRead        # Импорт для избранного/корзины
 
 # Основные поля пользователя
 class UserBase(BaseModel):
     email: EmailStr
-    first_name: Optional[str]
-    last_name: Optional[str]
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
+    class Config:
+        from_attributes = True
+
+# Схема для регистрации пользователя
 class UserCreate(UserBase):
     password: str
 
+# Схема для ответа с ID и признаком администратора
 class UserResponse(UserBase):
     id: int
-    is_admin: bool
+    is_admin: bool = False
 
-# Адреса пользователя
-class Address(BaseModel):
-    user_id: int
-    street: str
-    city: str
-    postal_code: str
-    country: str
+    class Config:
+        from_attributes = True
 
-# Лист пожеланий
-class Wishlist(BaseModel):
-    user_id: int
-    item_ids: List[int]
+# Схема для смены пароля
+class UserChangePassword(BaseModel):
+    old_password: str
+    new_password: str
 
-# Роли и права
-class Role(BaseModel):
-    name: str
-    permissions: List[str]
+# Схема для подтверждения email через код
+class EmailVerificationRequest(BaseModel):
+    email: EmailStr
 
-class Permission(BaseModel):
-    name: str
-    description: Optional[str]
+class EmailVerificationConfirm(BaseModel):
+    email: EmailStr
+    code: str
+
+# Избранное (Favorites) — список товаров
+class FavoritesList(BaseModel):
+    items: List[ItemRead]
+
+    class Config:
+        from_attributes = True
+
+# Корзина пользователя
+class CartItemRead(BaseModel):
+    item: ItemRead
+    quantity: int
+
+    class Config:
+        from_attributes = True
+
+class CartRead(BaseModel):
+    items: List[CartItemRead]
+    total_price: float
+    count: int
+
+    class Config:
+        from_attributes = True
+
+# История заказов пользователя
+class UserProfile(UserResponse):
+    orders: List[OrderRead] = []
+    favorites: List[ItemRead] = []
+    cart: Optional[CartRead] = None
+
+    class Config:
+        from_attributes = True
+
+
+#FAVORITE
+class FavoriteAdd(BaseModel):
+    item_id: int
+
+class FavoriteRemove(BaseModel):
+    item_id: int
+
+class FavoriteRead(BaseModel):
+    item: ItemRead
+
+    class Config:
+        from_attributes = True
+
+class FavoritesList(BaseModel):
+    items: List[ItemRead]
+
+    class Config:
+        from_attributes = True
+

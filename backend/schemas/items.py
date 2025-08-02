@@ -1,35 +1,41 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field
 from typing import Optional
+import enum
+
+class ItemType(str, enum.Enum):
+    quantitative = "quantitative"
+    qualitative = "qualitative"
 
 class ItemBase(BaseModel):
-    title: str
-    price: float
+    name: str
     description: Optional[str] = None
-    image_url: Optional[HttpUrl] = None
+    price: float
+    image_url: Optional[str] = None
+    type: ItemType
+    quantity: Optional[int] = None     # только для количественных
+    quality: Optional[str] = None      # только для качественных
+
+    class Config:
+        from_attributes = True
 
 class ItemCreate(ItemBase):
     pass
 
-class ItemUpdate(ItemBase):
-    pass
+class ItemUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    price: Optional[float]
+    image_url: Optional[str]
+    type: Optional[ItemType]
+    quantity: Optional[int]
+    quality: Optional[str]
 
-class ItemResponse(ItemBase):
-    id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class Category(BaseModel):
+class ItemRead(ItemBase):
     id: int
-    name: str
+    is_favorite: Optional[bool] = False  # вычисляемое поле для каталога
+
     class Config:
-        orm_mode = True
-
-class Inventory(BaseModel):
-    item_id: int
-    quantity: int
-
-class Review(BaseModel):
-    user_id: int
-    item_id: int
-    rating: int
-    comment: Optional[str] = None
+        from_attributes = True

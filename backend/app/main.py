@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from database.session import engine, Base
-from routes import items, orders, payments, auth
+from backend.database.session import engine, Base
+from backend.routes import items, orders, payments, auth
 
 import uvicorn
 
@@ -14,11 +14,10 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-from routes import items, orders, payments, auth
-
+#че я тут наворотил блять
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=['http://localhost:5173'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

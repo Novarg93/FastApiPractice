@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.items import Item
 from database.session import get_db
 from schemas.items import ItemCreate
-from database.currency_script import seed_items
 
 router = APIRouter(prefix="/items", tags=["items"])
 
