@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-
-from backend.database.session import engine, Base
-from backend.routes import items, orders, payments, auth
+from database.session import engine, Base
+from routes import items, orders, payments, auth
 
 import uvicorn
 
