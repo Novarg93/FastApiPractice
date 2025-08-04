@@ -21,7 +21,7 @@ app.include_router(items_router)
 app.include_router(auth_router)
 @app.get("/")
 def read_root():
-    return {"message": "API is working!"}
+    return {"message": "SANYA"}
 
 if __name__ == "__main__":
     import uvicorn

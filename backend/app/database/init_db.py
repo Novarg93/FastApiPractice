@@ -29,13 +29,13 @@ items_data = [
     {"name": "Glassblower's Bauble", "price": 0.05, "image": "bauble.png", "quantity": 1, "quality": "0"},
 ]
 
-def fill_items():
-    db = SessionLocal()
-    for data in items_data:
-        item = Item(**data)
-        db.add(item)
-    db.commit()
-    db.close()
+# def fill_items():
+#     db = SessionLocal()
+#     for data in items_data:
+#         item = Item(**data)
+#         db.add(item)
+#     db.commit()
+#     db.close()
 
 # def update_items():
 #     db = SessionLocal()
@@ -51,8 +51,8 @@ def fill_items():
 #     db.commit()
 #     db.close()
 
-if __name__ == '__main__':
-    fill_items()
+# if __name__ == '__main__':
+#     fill_items()
 
 # if __name__ == '__main__':
 #     update_items()
