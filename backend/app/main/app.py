@@ -1,15 +1,11 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.routes.items import router as items_router
 app = FastAPI()
 
-from app.routes.items import router as items_router
-app.include_router(items_router)
-
 origins = [
-    "http://localhost",
     "http://localhost:5173",
-    "http://localhost:8000",
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
@@ -20,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(items_router)
 @app.get("/")
 def read_root():
     return {"message": "API is working!"}

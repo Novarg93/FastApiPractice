@@ -15,7 +15,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/", response_model=ItemRead)
+@router.post("", response_model=ItemRead)
 def create_item(item: ItemCreate, db: Session = Depends(get_db)):
     db_item = Item(**item.model_dump())
     db.add(db_item)
@@ -23,7 +23,7 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return db_item
 
-@router.get("/", response_model=ItemListResponse)
+@router.get("", response_model=ItemListResponse)
 def read_items(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
@@ -35,14 +35,13 @@ def read_items(
     query = db.query(Item)
     if q:
         query = query.filter(Item.name.ilike(f"%{q}%"))
+
     total = query.count()
     sort_column = getattr(Item, sort_by)
-    if order == "asc":
-        query = query.order_by(asc(sort_column))
-    else:
-        query = query.order_by(desc(sort_column))
+    query = query.order_by(asc(sort_column) if order == "asc" else desc(sort_column))
     items = query.offset((page - 1) * limit).limit(limit).all()
-    return ItemListResponse(items=items, total=total)
+
+    return {"items": items, "total": total}
 
 @router.get("/{item_id}", response_model=ItemRead)
 def read_item(item_id: int, db: Session = Depends(get_db)):
@@ -50,27 +49,3 @@ def read_item(item_id: int, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
-
-@router.get("/", response_model=dict)
-def read_items(
-    db: Session = Depends(get_db),
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
-    sort_by: str = Query("name", pattern="^(name|price)$"),
-    order: str = Query("asc", pattern="^(asc|desc)$"),
-    q: str = Query("", alias="q"),
-):
-    query = db.query(Item)
-    if q:
-        query = query.filter(Item.name.ilike(f"%{q}%"))
-    total = query.count()
-    sort_column = getattr(Item, sort_by)
-    if order == "asc":
-        query = query.order_by(asc(sort_column))
-    else:
-        query = query.order_by(desc(sort_column))
-    items = query.offset((page - 1) * limit).limit(limit).all()
-    return {
-        "items": items,
-        "total": total,
-    }

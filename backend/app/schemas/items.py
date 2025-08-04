@@ -5,7 +5,7 @@ class ItemBase(BaseModel):
     price: float
     image: str | None = None
     quantity: int | None = None
-    quality: int | None = None
+    quality: int | None = None  # было str — теперь int
 
     model_config = {
         "from_attributes": True
