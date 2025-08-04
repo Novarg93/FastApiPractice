@@ -7,6 +7,8 @@ import Register from '@/pages/Register.vue'
 import ForgotPassword from '@/pages/ForgotPassword.vue'
 import Catalog from '@/pages/Catalog.vue'
 import Dashboard from '@/pages/Dashboard.vue'
+import ItemPage from '@/pages/ItemPage.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,6 +67,12 @@ const router = createRouter({
       description: 'Your personel dashboard in ShadcnVue',
     },
     },
+    {
+    path: "/item/:id",
+    name: "item",
+    component: ItemPage,
+    props: true, // чтобы параметр id приходил как пропс
+  }
   ],
 })
 

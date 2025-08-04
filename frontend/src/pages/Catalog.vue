@@ -179,7 +179,7 @@ onMounted(() => {
                   class="w-full aspect-square object-cover saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]" />
               </div>
               <CardTitle class="py-6 pb-4 px-6">
-                <span class="hover:text-primary cursor-pointer">{{ item.name }}</span>
+                <router-link :to="`/item/${item.id}`" class="hover:text-primary cursor-pointer">{{ item.name }}</router-link>
               </CardTitle>
             </CardHeader>
             <CardContent class='text-muted-foreground '>
