@@ -1,18 +1,30 @@
 from pydantic import BaseModel
 
-class Item(BaseModel):
+class ItemBase(BaseModel):
     name: str
     price: float
     image: str | None = None
     quantity: int | None = None
-    quality: str | None = None
+    quality: int | None = None
 
-class ItemCreate(BaseModel):
+    model_config = {
+        "from_attributes": True
+    }
+
+class ItemCreate(ItemBase):
     pass
 
-class ItemRead(BaseModel):
+class ItemRead(ItemBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
+class ItemListResponse(BaseModel):
+    items: list[ItemRead]
+    total: int
+
+    model_config = {
+        "from_attributes": True
+    }

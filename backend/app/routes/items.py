@@ -1,11 +1,10 @@
-from dns.e164 import query
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
 from app.database.session import SessionLocal
 from app.models.items import Item
-from app.schemas.items import ItemCreate, ItemRead
+from app.schemas.items import ItemCreate, ItemRead, ItemListResponse
 
 router = APIRouter(prefix="/items", tags=["items"])
 
@@ -24,7 +23,7 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return db_item
 
-@router.get("/", response_model=list[ItemRead])
+@router.get("/", response_model=ItemListResponse)
 def read_items(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
@@ -43,7 +42,7 @@ def read_items(
     else:
         query = query.order_by(desc(sort_column))
     items = query.offset((page - 1) * limit).limit(limit).all()
-    return items
+    return ItemListResponse(items=items, total=total)
 
 @router.get("/{item_id}", response_model=ItemRead)
 def read_item(item_id: int, db: Session = Depends(get_db)):
