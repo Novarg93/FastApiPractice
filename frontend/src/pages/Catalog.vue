@@ -40,70 +40,7 @@ const addToCartAndNotify = (item:Product) => {
 
 
 
-const data = ref<Product[]>([
-  {
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},
-{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},{
-  id:1,
-  title:'Test',
-  price:1200,
-  description:'kekcheburek',
-  image_url:'https://cdn.pixabay.com/photo/2014/06/03/19/38/board-361516_960_720.jpg'
-},
-])
+const data = ref<Product[]>([])
 
 const newTitle = ref('')
 const count = ref(0)
