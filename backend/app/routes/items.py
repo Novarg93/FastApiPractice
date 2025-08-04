@@ -27,7 +27,7 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)):
 def read_items(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=999),
     sort_by: str = Query("name", pattern="^(name|price)$"),
     order: str = Query("asc", pattern="^(asc|desc)$"),
     q: str = Query("", alias="q"),
