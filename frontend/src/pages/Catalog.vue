@@ -25,10 +25,10 @@ const cart = useCartStore()
 
 interface Product {
   id: number
-  title: string
+  name: string
   price:number
   description: string
-  image_url: string
+  image: string
 }
 
 const toast = useToast()
@@ -38,16 +38,16 @@ const addToCartAndNotify = (item:Product) => {
   toast.success('Товар добавлен в корзину!')
 }
 
-
+const newTitle = ref('')
 
 const data = ref<Product[]>([])
+const totalPages = ref(0);
+const currentPage = ref(1);
+const totalItems = ref(0);
+const limit = ref(10); // лимит на страницу
+const searchQuery = ref("");
 
-const newTitle = ref('')
-const count = ref(0)
-const currentPage = ref(1)
-const searchQuery = ref('')
-const limit = 10
-const totalPages = ref(1);
+
 
 
 // загрузка начальных данных с бека и счетчик
@@ -56,28 +56,23 @@ const fetchItems = async (page = 1) => {
     const response = await axios.get('http://127.0.0.1:8000/items', {
       params: {
         page,
-        limit,
-        q: searchQuery.value
+        limit: limit.value,
+        sort_by: 'name',
+        order:'asc',
       }
     })
 
     data.value = response.data.items
-    count.value = response.data.count
-    totalPages.value = response.data.total_pages
+    totalItems.value = response.data.total.pages
+
+    totalPages.value = Math.ceil(response.data.total / limit.value);
     currentPage.value = page
   } catch (error) {
     console.error('Error fetchItems', error)
   }
 }
 
-const fetchCount = async () => {
-  try {
-    const response = await axios.get('http://127.0.0.1:8000/items/count')
-    count.value = response.data.count
-  } catch (error) {
-    console.error('error count', error)
-  }
-}
+
 
 
 // добавление нового товара
@@ -159,14 +154,14 @@ onMounted(() => {
           <CardHeader class="p-0 gap-0">
           <div class="h-full overflow-hidden">
             <img
-              :src="item.image_url"
+              :src="item.image"
               alt=""
               class="w-full aspect-square object-cover saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]"
             />
           </div>
           <CardTitle class="py-6 pb-4 px-6"
             >
-            <span class="hover:text-primary cursor-pointer">{{  item.title  }}</span>
+            <span class="hover:text-primary cursor-pointer">{{  item.name  }}</span>
           </CardTitle>
         </CardHeader>
         <CardContent    
