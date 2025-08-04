@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.items import router as items_router
+from app.routes.auth import router as auth_router
 app = FastAPI()
 
 origins = [
@@ -17,6 +18,7 @@ app.add_middleware(
 )
 
 app.include_router(items_router)
+app.include_router(auth_router)
 @app.get("/")
 def read_root():
     return {"message": "API is working!"}
