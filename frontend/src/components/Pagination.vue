@@ -20,6 +20,8 @@ function goToPage(page: number) {
   }
 }
 
+
+
 function getPagination(currentPage: number, totalPages: number): (number | string)[] {
   const pages: (number | string)[] = []
   const delta = 2
