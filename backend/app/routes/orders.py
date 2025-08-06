@@ -5,6 +5,7 @@ from app.models.orders import Order, OrderItem
 from app.models.users import User
 from app.schemas.orders import OrderCreate, OrderRead
 from app.core.security import get_current_user
+from app.models.items import Item
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 

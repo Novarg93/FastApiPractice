@@ -13,7 +13,7 @@ class OrderRead(BaseModel):
     id: int
     user_id: int
     status: str
-    items: List[OrderCreateBase]
+    items: list[OrderCreateBase]
 
     model_config = {
         "from attributes": True
