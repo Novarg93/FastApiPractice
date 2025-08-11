@@ -10,5 +10,5 @@ class Item(Base):
     image = Column(String, nullable=True)
     quantity = Column(Integer, nullable=True)
     quality = Column(Integer, nullable=True)
+    order_items = relationship("OrderItem", back_populates="item")
 
-order_items = relationship("OrderItem", back_populates="item")

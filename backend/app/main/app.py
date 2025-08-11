@@ -1,8 +1,19 @@
-from fastapi import FastAPI, APIRouter
+# backend/app/main/app.py
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
 from app.routes.items import router as items_router
 from app.routes.auth import router as auth_router
-app = FastAPI()
+from app.database.session import engine, Base
+import app.models  # noqa: F401
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
@@ -19,6 +30,7 @@ app.add_middleware(
 
 app.include_router(items_router)
 app.include_router(auth_router)
+
 @app.get("/")
 def read_root():
     return {"message": "SANYA"}
