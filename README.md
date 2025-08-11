@@ -26,7 +26,7 @@ venv\Scripts\activate
 pip install python-dotenv
 pip install asyncpg
 cd backend
-
+pip install fastapi uvicorn sqlalchemy "python-jose[cryptography]" passlib[bcrypt] python-multipart
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 venv\Scripts\activate
