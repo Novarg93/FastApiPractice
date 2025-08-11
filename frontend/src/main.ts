@@ -4,7 +4,7 @@ import '@/assets/animations.css';
 import { createHead } from '@vueuse/head'
 import App from './App.vue'
 import router from './router'
-
+import 'vue-sonner/style.css'
 import 'vue-toastification/dist/index.css'
 import Toast from 'vue-toastification'
 

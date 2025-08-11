@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';
 import axios from 'axios';
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useCartStore } from '@/stores/cart';
-import { useToast } from 'vue-toastification'
-import { ShoppingCart } from 'lucide-vue-next';
+import type { Product } from '@/types'
+import { toast } from 'vue-sonner'
+import { SearchCheck, ShoppingCart } from 'lucide-vue-next';
 import { X } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth'
 import Pagination from '@/components/Pagination.vue';
-import { useRoute, useRouter } from 'vue-router'
+import { stringifyQuery, useRoute, useRouter } from 'vue-router'
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import { description } from './Dashboard.vue';
 import Button from '@/components/ui/button/Button.vue';
@@ -18,206 +30,166 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import { ToastAction } from 'reka-ui';
 
-const auth = useAuthStore()
+
+interface Item {
+  id: number;
+  name: string;
+  price: number;
+  image?: string | null;
+  quantity?: number | null;
+  quality?: number | null
+}
+
+type SortChoice = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'
+
+const items = ref<Item[]>([])
+const searchQuery = ref('')
+const sortChoice = ref<SortChoice>('name-asc')
+const sortType = ref<'name' | 'price'>('name')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+const isLoading = ref(false);
+const searchTimeout = ref<number | null>(null)
+
+const SKELETON_COUNT = 10
+
+
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
+const MIN_LOAD_MS = 1000
+
+
+const fetchItems = async () => {
+  isLoading.value = true
+  const started = performance.now()
+  try {
+    const { data } = await axios.get('http://127.0.0.1:8000/items/', {
+      params: {
+        q: searchQuery.value || '',
+        sort_by: sortType.value,
+        order: sortOrder.value
+      }
+    })
+    items.value = data.items
+  } catch (e) {
+    console.error(e)
+  } finally {
+    const elapsed = performance.now() - started
+    if (elapsed < MIN_LOAD_MS) {
+      await sleep(MIN_LOAD_MS - elapsed) 
+    }
+    isLoading.value = false
+  }
+}
 
 const cart = useCartStore()
 
-interface Product {
-  id: number
-  name: string
-  price: number
-  description: string
-  image: string
+
+
+const addToCartAndNotify = (product: Product) => {
+  cart.addToCart(product)
+  toast.success('Succesfully added to cart')
 }
 
-const toast = useToast()
-
-const addToCartAndNotify = (item: Product) => {
-  cart.addToCart(item)
-  toast.success('Товар добавлен в корзину!')
-}
-
-
-
-const data = ref<Product[]>([])
-
-const currentPage = ref(1);
-
-const limit = ref(10); // лимит на страницу
-
-const searchQuery = ref("");
-
-const sortType = ref<"alpha" | "price">("alpha"); // активный тип сортировки
-const sortOrder = ref<"asc" | "desc">("asc"); // направление
-
-
-// загрузка начальных данных с бека и счетчик
-const fetchItems = async () => {
-  try {
-    const response = await axios.get("http://127.0.0.1:8000/items", {
-      params: {
-        page: 1,
-        limit: 100 // грузим всё
-      }
-    });
-    data.value = response.data.items;
-  } catch (error) {
-    console.error("Error fetchItems", error);
+watch(searchQuery, () => {
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value);
   }
-};
-
-// сортировка
-
-const filteredAndSortedItems = computed(() => {
-  let result = [...data.value];
-
-  // Фильтрация по поиску
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase();
-    result = result.filter(item => item.name.toLowerCase().includes(q));
-  }
-
-  // Сортировка
-  if (sortType.value === "alpha") {
-    result.sort((a, b) => {
-      const dir = sortOrder.value === "asc" ? 1 : -1;
-      return a.name.localeCompare(b.name) * dir;
-    });
-  } else if (sortType.value === "price") {
-    result.sort((a, b) => {
-      const dir = sortOrder.value === "asc" ? 1 : -1;
-      return (a.price - b.price) * dir;
-    });
-  }
-
-  return result;
-});
-
-
-const paginatedItems = computed(() => {
-  const start = (currentPage.value - 1) * limit.value;
-  const end = start + limit.value;
-  return filteredAndSortedItems.value.slice(start, end);
-});
-
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredAndSortedItems.value.length / limit.value);
-});
-
-
-
-// Поиск по названию (при вводе)
-const searchItems = () => {
-  fetchItems()
-}
-
-//pagination
-
-
-
-
-// Поиск по id
-
-
-const route = useRoute()
-const router = useRouter()
-
-
-function goToPage(page: number) {
-  currentPage.value = page;
-}
-
-watch(() => route.query.page, (newPage) => {
-  const page = parseInt(newPage as string) || 1
-  fetchItems()
+  searchTimeout.value = setTimeout(() => {
+    fetchItems();
+  }, 1000);
 })
+
+watch(sortChoice, (val) => {
+  if (val.startsWith('name')) sortType.value = 'name'
+  if (val.startsWith('price')) sortType.value = 'price'
+  sortOrder.value = val.endsWith('asc') ? 'asc' : 'desc'
+  fetchItems()
+}, { immediate: true })
 
 onMounted(() => {
-  const pageFromRoute = parseInt(route.query.page as string) || 1
-  fetchItems()
-})
+  fetchItems();
+});
+
+
 </script>
 
 <template>
 
   <DefaultLayout>
-    <section class=" w-[90%] 2xl:w-[75%]  mx-auto  rounded  mt-10">
+    <section class=" w-[90%] 2xl:w-[75%]  mx-auto  rounded  mt-10 py-12 lg:pb-20">
       <div>
 
         <div class="flex flex-col items-center gap-4 justify-between w-full p-2">
           <div>
-            <span class="text-xl">Товаров всего: {{ filteredAndSortedItems.length }}</span>
+            <span class="text-xl">Товаров всего: {{ items.length }}</span>
           </div>
-          <div class="flex gap-4 items-center pr-4 pt-2">
-            <input class="border rounded-md px-2 placeholder:text-indigo-50/30" v-model="searchQuery"
-              @input="searchItems" placeholder="Поиск по названию" />
+          <div class="flex gap-4  items-center pr-4 pt-2">
+            <Input class="border w-96 rounded-md px-2" v-model="searchQuery" placeholder="Filter by name" />
 
-            <select v-model="sortOrder" @focus="sortType = 'alpha'" class="border rounded px-2">
-              <option value="asc">A → Z</option>
-              <option value="desc">Z → A</option>
-            </select>
-
-            <!-- Сортировка по цене -->
-            <select v-model="sortOrder" @focus="sortType = 'price'" class="border rounded px-2">
-              <option value="asc">Цена ↑</option>
-              <option value="desc">Цена ↓</option>
-            </select>
-            <router-link to="/cart" class="w-full hover:text-[#34d399] hover:underline">
-              <ShoppingCart class="hover:text-blue-600" />
-            </router-link>
+            <Select v-model="sortChoice">
+              <SelectTrigger>
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent class="border-border">
+                <SelectGroup>
+                  <SelectItem value="name-asc">A → Z</SelectItem>
+                  <SelectItem value="name-desc">Z → A</SelectItem>
+                  <SelectItem value="price-asc">Цена ↑</SelectItem>
+                  <SelectItem value="price-desc">Цена ↓</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div v-if="isLoading" class="flex flex-wrap w-full gap-4 mt-4 justify-between items-start" aria-busy="true">
+          <div v-for="n in SKELETON_COUNT" :key="n"
+            class=" flex flex-col w-full max-w-xs md:max-w-none mx-auto md:w-[30%] lg:w-[23%] xl:w-[20%] 2xl:w-[18%] h-full overflow-hidden rounded-xl border border-border p-0">
+            <Skeleton class="w-full aspect-square" />
+            <div class="p-6 space-y-3">
+              <Skeleton class="h-5 w-3/4" />
+              <Skeleton class="h-4 w-1/2" />
+            </div>
+            <div class="px-6 pb-6">
+              <Skeleton class="h-10 w-full" />
+            </div>
           </div>
         </div>
 
-        <div class="flex flex-wrap w-full gap-4 mt-4  justify-between items-center">
-          <Card v-for="item in paginatedItems" :key="item.id"
-            class="bg-muted/60 dark:bg-card flex flex-col w-full  max-w-xs md:max-w-none mx-auto md:w-[30%] lg:w-[23%] xl:w-[20%]  2xl:w-[18%] h-full overflow-hidden group/hoverimg border-border">
+        <!-- Нормальные карточки -->
+        <div v-else class="flex flex-wrap w-full gap-4 mt-4 justify-between items-start">
+          <Card v-for="item in items" :key="item.id"
+            class="bg-muted/60 dark:bg-card flex flex-col w-full max-w-xs md:max-w-none mx-auto md:w-[30%] lg:w-[23%] xl:w-[20%] 2xl:w-[18%] h-full overflow-hidden group/hoverimg border-border">
             <CardHeader class="p-0 gap-0">
               <div class="h-full overflow-hidden">
-                <img :src="item.image" alt=""
-                  class="w-full aspect-square object-cover saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]" />
+                <img @error="(e) => e.target.src = '/images/placeholder.png'" :src="`/images/${item.image}`" :alt="item.name" 
+                  class="w-full aspect-square object-contain saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]" />
               </div>
               <CardTitle class="py-6 pb-4 px-6">
-                <router-link :to="`/item/${item.id}`" class="hover:text-primary cursor-pointer">{{ item.name }}</router-link>
+                <router-link :to="`/item/${item.id}`" class="hover:text-primary cursor-pointer">
+                  {{ item.name }}
+                </router-link>
               </CardTitle>
             </CardHeader>
-            <CardContent class='text-muted-foreground '>
+
+            <CardContent class="text-muted-foreground">
               {{ item.price }} $
             </CardContent>
 
             <CardFooter class="space-x-4 mt-auto">
-              <Button class="cursor-pointer w-full">
+              <Button @click="addToCartAndNotify(item)" class="cursor-pointer w-full">
                 <ShoppingCart /> Add to cart
               </Button>
             </CardFooter>
           </Card>
-
-
-          <!-- <div v-for="item in data" :key="item.id" class="flex w-[18%] flex-col items-center p-2 gap-4">
-          <div class="w-full relative">
-            <img class="rounded" :src="item.image_url" :alt="item.title">
-            <Button
-              @click="addToCartAndNotify(item)"
-              class="hover:text-[#34d399] cursor-pointer transition-colors flex items-center gap-4 p-2 border rounded w-9/10 justify-center bg-black/40 absolute bottom-1 left-4"
-            >
-              <ShoppingCart /> Add to cart
-            </Button>
-          </div>
-          <router-link
-            :to="`/product/${item.id}`"
-            class="w-full text-center hover:text-[#34d399] transition-colors hover:underline"
-          >
-            {{ item.title }}
-          </router-link>
-          <span>{{ item.price }} руб.</span>
-        </div> -->
         </div>
 
-        <div class="flex gap-2 items-center place-self-center my-10">
-
-          <Pagination :current-page="currentPage" :total-pages="totalPages" @update:page="goToPage" />
+        <!-- Пусто после загрузки -->
+        <div v-if="!isLoading && items.length === 0" class="text-sm text-muted-foreground mt-6">
+          Ничего не найдено
         </div>
+
+
       </div>
     </section>
   </DefaultLayout>

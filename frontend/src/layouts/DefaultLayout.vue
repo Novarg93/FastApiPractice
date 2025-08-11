@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 import { ref, computed, nextTick, watch, } from "vue";
 import { useAuthStore } from '@/stores/auth'
+import { Toaster } from '@/components/ui/sonner'
+import 'vue-sonner/style.css'
+
 
 const auth = useAuthStore()
 const isAuthenticated = computed(() => auth.user !== null)
@@ -19,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-import { ChevronsDown, Menu, X  } from "lucide-vue-next";
+import { ChevronsDown, Menu, X, ShoppingCart  } from "lucide-vue-next";
 
 
 
@@ -109,6 +112,9 @@ const isOpen = ref<boolean>(false);
 
             <div class="hidden lg:flex pr-2 xl:pr-4">
                 <div  class="flex justify-between gap-8 items-center">
+                    <router-link to="/cart" class=" hover:text-[#34d399] hover:underline">
+              <ShoppingCart class="hover:text-blue-600" />
+            </router-link>
                     <router-link class="hover:underline " to="/login">Login</router-link>
                                 <router-link class="hover:underline " to="/register">Sign Up</router-link>
                 </div>
@@ -222,4 +228,6 @@ const isOpen = ref<boolean>(false);
 
         </footer>
     </div>
+    <Toaster  
+    />
 </template>

@@ -30,7 +30,7 @@ pip install fastapi uvicorn sqlalchemy "python-jose[cryptography]" passlib[bcryp
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 venv\Scripts\activate
-uvicorn app.main:app --reload
+uvicorn app.main.app:app --reload
 
 
 
