@@ -20,6 +20,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+const isAuth = auth.isAuthenticated
+
 </script>
 <template>
   <SidebarProvider>
@@ -46,7 +51,7 @@ import {
       </header>
       <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-          <div class="aspect-video rounded-xl bg-muted/50" />
+          <pre>{{  auth  }}</pre>
           <div class="aspect-video rounded-xl bg-muted/50" />
           <div class="aspect-video rounded-xl bg-muted/50" />
         </div>
