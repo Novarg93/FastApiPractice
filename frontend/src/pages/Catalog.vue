@@ -16,12 +16,10 @@ import { useCartStore } from '@/stores/cart';
 import type { Product } from '@/types'
 import { toast } from 'vue-sonner'
 import { SearchCheck, ShoppingCart } from 'lucide-vue-next';
-import { X } from 'lucide-vue-next';
-import { useAuthStore } from '@/stores/auth'
-import Pagination from '@/components/Pagination.vue';
-import { stringifyQuery, useRoute, useRouter } from 'vue-router'
+
+
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import { description } from './Dashboard.vue';
+
 import Button from '@/components/ui/button/Button.vue';
 import {
   Card,
@@ -30,7 +28,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { ToastAction } from 'reka-ui';
+
 
 
 interface Item {
@@ -135,8 +133,8 @@ onMounted(() => {
                 <SelectGroup>
                   <SelectItem value="name-asc">A → Z</SelectItem>
                   <SelectItem value="name-desc">Z → A</SelectItem>
-                  <SelectItem value="price-asc">Цена ↑</SelectItem>
-                  <SelectItem value="price-desc">Цена ↓</SelectItem>
+                  <SelectItem value="price-asc">Price ↑</SelectItem>
+                  <SelectItem value="price-desc">Price ↓</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -156,7 +154,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Нормальные карточки -->
+        
         <div v-else class="flex flex-wrap w-full gap-4 mt-4 justify-between items-start">
           <Card v-for="item in items" :key="item.id"
             class="bg-muted/60 dark:bg-card flex flex-col w-full max-w-xs md:max-w-none mx-auto md:w-[30%] lg:w-[23%] xl:w-[20%] 2xl:w-[18%] h-full overflow-hidden group/hoverimg border-border">
