@@ -7,6 +7,8 @@ import router from './router'
 import 'vue-sonner/style.css'
 import 'vue-toastification/dist/index.css'
 import Toast from 'vue-toastification'
+import { useCartStore } from '@/stores/cart'
+
 
 const app = createApp(App)
 const head = createHead()
@@ -28,3 +30,4 @@ router.afterEach((to) => {
 })
 
 app.mount('#app')
+useCartStore().init()

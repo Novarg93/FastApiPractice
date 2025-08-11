@@ -1,28 +1,64 @@
 import { defineStore } from 'pinia'
-import type { Product } from '@/types'
+import type { CartItem, Product } from '@/types'
+
+const STORAGE_KEY = 'cart:v1'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    items: [] as Product[],
+    items: [] as CartItem[],
   }),
+
   getters: {
-    totalItems: (state) => state.items.reduce((sum, item) => sum + (item.quantity ?? 1), 0),
-    totalPrice: (state) => state.items.reduce((sum, item) => sum + (item.price * (item.quantity ?? 1)), 0),
+    totalItems: (s) => s.items.reduce((sum, i) => sum + i.quantity, 0),
+    subtotal:   (s) => s.items.reduce((sum, i) => sum + i.price * i.quantity, 0),
   },
+
   actions: {
-    addToCart(product: Product) {
-      const existing = this.items.find((p) => p.id === product.id)
-      if (existing) {
-        existing.quantity = (existing.quantity ?? 1) + 1
-      } else {
-        this.items.push({ ...product, quantity: 1 })
+    _save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items))
+    },
+    _load() {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        try { this.items = JSON.parse(raw) } catch {}
       }
     },
-    removeFromCart(productId: number) {
-      this.items = this.items.filter((p) => p.id !== productId)
+
+    addToCart(product: Product, qty = 1) {
+      const existing = this.items.find(i => i.id === product.id)
+      if (existing) existing.quantity += qty
+      else this.items.push({ ...product, quantity: qty })
+      this._save()
     },
-    clearCart() {
+    increment(id: number) {
+      const it = this.items.find(i => i.id === id)
+      if (!it) return
+      it.quantity += 1
+      this._save()
+    },
+    decrement(id: number) {
+      const it = this.items.find(i => i.id === id)
+      if (!it) return
+      it.quantity = Math.max(1, it.quantity - 1)
+      this._save()
+    },
+    setQuantity(id: number, qty: number) {
+      const it = this.items.find(i => i.id === id)
+      if (!it) return
+      it.quantity = Math.max(1, Math.floor(qty || 1))
+      this._save()
+    },
+    remove(id: number) {
+      this.items = this.items.filter(i => i.id !== id)
+      this._save()
+    },
+    clear() {
       this.items = []
+      this._save()
     },
+    // вызывать один раз при старте приложения
+    init() {
+      this._load()
+    }
   },
 })

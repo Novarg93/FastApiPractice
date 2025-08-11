@@ -3,7 +3,9 @@ import { ref, computed, nextTick, watch, } from "vue";
 import { useAuthStore } from '@/stores/auth'
 import { Toaster } from '@/components/ui/sonner'
 import 'vue-sonner/style.css'
+import { useCartStore } from '@/stores/cart'
 
+const cart = useCartStore()
 
 const auth = useAuthStore()
 const isAuthenticated = computed(() => auth.user !== null)
@@ -112,9 +114,17 @@ const isOpen = ref<boolean>(false);
 
             <div class="hidden lg:flex pr-2 xl:pr-4">
                 <div  class="flex justify-between gap-8 items-center">
-                    <router-link to="/cart" class=" hover:text-[#34d399] hover:underline">
-              <ShoppingCart class="hover:text-blue-600" />
-            </router-link>
+                    <router-link to="/cart" class="relative hover:text-[#34d399] hover:underline">
+                        <ShoppingCart class="hover:text-blue-600" />
+                        
+                        
+                        <span
+                            v-if="cart.totalItems > 0"
+                            class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full"
+                        >
+                            {{ cart.totalItems }}
+                        </span>
+                        </router-link>
                     <router-link class="hover:underline " to="/login">Login</router-link>
                                 <router-link class="hover:underline " to="/register">Sign Up</router-link>
                 </div>

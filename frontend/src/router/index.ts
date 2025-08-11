@@ -8,6 +8,7 @@ import ForgotPassword from '@/pages/ForgotPassword.vue'
 import Catalog from '@/pages/Catalog.vue'
 import Dashboard from '@/pages/Dashboard.vue'
 import ItemPage from '@/pages/ItemPage.vue'
+import Cart from '@/pages/Cart.vue'
 
 
 const router = createRouter({
@@ -20,6 +21,15 @@ const router = createRouter({
       meta: {
       title: 'ShadcnVue',
       description: 'Welcome to ShadcnVue Project',
+    },
+    },
+    {
+      path: '/cart',
+      name: 'Cart',
+      component: Cart,
+      meta: {
+      title: 'Shopping Cart',
+      description: 'Shopping cart',
     },
     },
     {

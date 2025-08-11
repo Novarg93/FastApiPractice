@@ -15,3 +15,7 @@ export interface Product {
   image_url: string
   quantity?:number
 }
+
+export interface CartItem extends Product {
+  quantity: number
+}
