@@ -4,9 +4,12 @@ from pathlib import Path
 from PIL import Image
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
-from app.core.security import get_current_user, get_db
+from sqlalchemy.sql.functions import current_user
+
+from app.core.security import get_current_user, get_db, verify_password, hash_password
 from app.core.settings import settings
 from app.models.users import User
+from app.schemas.users import PasswordChange
 
 router = APIRouter(prefix="/users", tags=["users"])
 ALLOWED = {"image/jpeg","image/png","image/webp"}
@@ -64,3 +67,26 @@ def delete_avatar(
         current_user.avatar_url = None
         db.add(current_user); db.commit()
     return
+
+@router.post("/me/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+        data: PasswordChange,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+        if not verify_password(data.old_password, current_user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Incorrect password",
+            )
+
+        if len(data.new_password) < 4:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password must be at least 8 characters"
+            )
+
+        current_user.hashed_password = hash_password(data.new_password)
+        db.add(current_user)
+        db.commit()
+        return
