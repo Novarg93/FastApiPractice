@@ -3,17 +3,16 @@ from venv import create
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 from app.routes.items import router as items_router
 from app.routes.auth import router as auth_router
-from app.routes.users import router as users_router
 from app.database.session import engine, Base
 import app.models  # noqa: F401
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -33,10 +32,6 @@ app.add_middleware(
 
 app.include_router(items_router)
 app.include_router(auth_router)
-app.include_router(users_router)
-
-from app.core.settings import settings
-app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name="media")
 
 @app.get("/")
 def read_root():
