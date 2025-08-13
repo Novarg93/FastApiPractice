@@ -9,7 +9,7 @@ from app.models import User, BlacklistedToken
 from app.schemas.users import UserCreate, UserLogin, Token, UserRead
 from app.core.security import hash_password, verify_password, create_access_token, get_current_user
 from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from core.security import oauth2_scheme, decode_access_token
+from app.core.security import oauth2_scheme, decode_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
