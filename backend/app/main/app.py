@@ -1,18 +1,19 @@
-# backend/app/main/app.py
-from venv import create
-
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from app.routes.items import router as items_router
 from app.routes.auth import router as auth_router
+from app.routes.users import router as users_router
 from app.database.session import engine, Base
+from app.core.settings import settings
 import app.models  # noqa: F401
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    Path(settings.MEDIA_ROOT).mkdir(parents=True, exist_ok=True)
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -30,8 +31,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(users_router)
 app.include_router(items_router)
 app.include_router(auth_router)
+
+
+app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name="media")
 
 @app.get("/")
 def read_root():

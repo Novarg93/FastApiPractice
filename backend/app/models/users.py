@@ -8,5 +8,6 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    avatar_url = Column(String(512), nullable=True)
 
     orders = relationship("Order", back_populates="user", cascade="all, delete")
