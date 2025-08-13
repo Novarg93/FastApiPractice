@@ -9,6 +9,7 @@ import Catalog from '@/pages/Catalog.vue'
 import Dashboard from '@/pages/Dashboard.vue'
 import ItemPage from '@/pages/ItemPage.vue'
 import Cart from '@/pages/Cart.vue'
+import Categories from '@/pages/Categories.vue'
 
 
 const router = createRouter({
@@ -81,6 +82,16 @@ const router = createRouter({
     path: "/item/:id",
     name: "item",
     component: ItemPage,
+    
+  },
+    {
+    path: "/categories",
+    name: "Categories",
+    component: Categories,
+    meta: {
+      title: 'Categories - ShadcnVue',
+      description: 'Browse categories and choose a game for boost.',
+    },
     
   }
   ],
