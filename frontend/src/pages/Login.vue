@@ -11,6 +11,7 @@ import InputError from '@/components/InputError.vue'
 import { LoaderCircle } from 'lucide-vue-next';
 import axios from 'axios';
 import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth'
 
 
 const email = ref('')
@@ -18,36 +19,30 @@ const password = ref('')
 const remember = ref(false)
 const isLoading = ref(false)
 const router = useRouter()
+const auth = useAuthStore()
 
 const errors = ref<{ [key: string]: string }>({})
 
-const login = async () => {
-    errors.value = {}
-    isLoading.value = true
-    try {
-        const { data } = await axios.post('http://localhost:8000/auth/login', {
-            email: email.value,
-            password: password.value,
-            remember: remember.value
-        })
-        if (remember.value) {
-            localStorage.setItem('token', data.access_token)
-        } else {
-            sessionStorage.setItem('token', data.access_token)
-        }
-        router.push('/dashboard')
-    } catch (error: any) {
-        if (error.response?.status === 422 && Array.isArray(error.response.data.detail)) {
-            for (const err of error.response.data.detail) {
-                const field = err.loc[1] 
-                errors.value[field] = err.msg
-            }
-        } else {
-            console.error('Login error:', error)
-        }
-    } finally {
-        isLoading.value = false
+async function onSubmit() {
+  errors.value = {}
+  isLoading.value = true
+  try {
+    await auth.login(email.value, password.value, remember.value)
+    router.push('/dashboard')
+  } catch (err: any) {
+    // FastAPI 422 в формате:
+    // { detail: [ {loc:['body','email'], msg:'Invalid email'}, ... ] }
+    if (err?.response?.status === 422 && Array.isArray(err.response.data?.detail)) {
+      for (const d of err.response.data.detail) {
+        const field = d?.loc?.[1]
+        if (field) errors.value[field] = d?.msg ?? 'Invalid'
+      }
+    } else {
+      errors.value.email = auth.error ?? 'Login failed'
     }
+  } finally {
+    isLoading.value = false
+  }
 }
 
 
@@ -72,7 +67,7 @@ const login = async () => {
                         <p class="text-center text-sm  text-gray-300">Enter your email and password below to log in</p>
                     </div>
                 </div>
-                <form @submit.prevent="login" class="flex flex-col gap-6">
+                <form @submit.prevent="onSubmit" class="flex flex-col gap-6">
                     <div class="grid gap-6">
                         <div class="grid gap-2">
                             <Label for="email">Email address</Label>

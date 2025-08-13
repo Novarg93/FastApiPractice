@@ -4,47 +4,87 @@ import { http } from '@/lib/http'
 
 type User = { id: number; email: string; name?: string | null }
 type LoginResp = { access_token: string; token_type: string }
+type StorageDriver = 'local' | 'session'
 
 const ACCESS_KEY = 'access_token'
 
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
-  const accessToken = ref<string | null>(localStorage.getItem(ACCESS_KEY))
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+// читаем токен из localStorage / sessionStorage (и мигрируем legacy 'token')
+function readToken(): { token: string | null; driver: StorageDriver | null } {
+  let t = localStorage.getItem(ACCESS_KEY)
+  if (t) return { token: t, driver: 'local' }
+  t = sessionStorage.getItem(ACCESS_KEY)
+  if (t) return { token: t, driver: 'session' }
 
-  const isAuthenticated = computed(() => !!user.value)
-
-  function setAccess(token: string | null) {
-    accessToken.value = token
-    if (token) localStorage.setItem(ACCESS_KEY, token)
-    else localStorage.removeItem(ACCESS_KEY)
+  // legacy: кто-то мог писать под ключом "token"
+  const legacy = localStorage.getItem('token') ?? sessionStorage.getItem('token')
+  if (legacy) {
+    localStorage.setItem(ACCESS_KEY, legacy)
+    localStorage.removeItem('token')
+    sessionStorage.removeItem('token')
+    return { token: legacy, driver: 'local' }
   }
 
-  async function fetchUser() {
-    if (!accessToken.value) { user.value = null; return }
+  return { token: null, driver: null }
+}
+
+export const useAuthStore = defineStore('auth', () => {
+  const { token: initial, driver: initialDriver } = readToken()
+  const token = ref<string | null>(initial)
+  const driver = ref<StorageDriver>(initialDriver ?? 'local')
+  const user = ref<User | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  const isAuthenticated = computed(() => !!token.value && !!user.value)
+
+  function setToken(next: string | null, target: StorageDriver = driver.value) {
+    // очистим оба хранилища, чтобы не было рассинхрона
+    localStorage.removeItem(ACCESS_KEY)
+    sessionStorage.removeItem(ACCESS_KEY)
+
+    if (next) {
+      if (target === 'local') localStorage.setItem(ACCESS_KEY, next)
+      else sessionStorage.setItem(ACCESS_KEY, next)
+      driver.value = target
+    }
+
+    token.value = next
+  }
+
+  function authHeader() {
+    return token.value ? { Authorization: `Bearer ${token.value}` } : {}
+  }
+
+  async function fetchMe() {
+    // резинк: если ref пуст, но в хранилище токен есть — подхватим
+    if (!token.value) {
+      const t = localStorage.getItem(ACCESS_KEY) ?? sessionStorage.getItem(ACCESS_KEY)
+      if (t) token.value = t
+    }
+    if (!token.value) { user.value = null; return }
+
     loading.value = true; error.value = null
     try {
-      const { data } = await http.get<User>('/auth/me')
+      const { data } = await http.get<User>('/auth/me', { headers: authHeader() })
       user.value = data
     } catch (e: any) {
-      const status = e?.response?.status
-      if (status === 401) {
-        setAccess(null)
+      if (e?.response?.status === 401) {
+        setToken(null)
         user.value = null
       }
-      error.value = 'Не удалось получить профиль'
+      error.value = e?.response?.data?.detail ?? 'Не удалось получить профиль'
+      throw e
     } finally {
       loading.value = false
     }
   }
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string, remember: boolean) {
     loading.value = true; error.value = null
     try {
       const { data } = await http.post<LoginResp>('/auth/login', { email, password })
-      setAccess(data.access_token)
-      await fetchUser()
+      setToken(data.access_token, remember ? 'local' : 'session')
+      await fetchMe()
+      return true
     } catch (e: any) {
       error.value = e?.response?.data?.detail ?? 'Ошибка входа'
       throw e
@@ -54,14 +94,23 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    try { await http.post('/auth/logout') } catch {}
-    setAccess(null)
+    try { await http.post('/auth/logout', {}, { headers: authHeader() }) } catch {}
+    setToken(null)
     user.value = null
   }
 
   async function init() {
-    await fetchUser()
+    await fetchMe()
   }
 
-  return { user, accessToken, isAuthenticated, loading, error, init, fetchUser, login, logout }
+  return {
+    // state
+    token, user, loading, error,
+    // getters
+    isAuthenticated,
+    // actions
+    init, fetchMe, login, logout,
+    // util
+    authHeader,
+  }
 })

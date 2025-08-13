@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-
+import { useAuthStore } from '@/stores/auth'
 import Welcome from '@/pages/Welcome.vue'
 import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
@@ -96,5 +96,26 @@ const router = createRouter({
   }
   ],
 })
+
+  router.beforeEach(async (to) => {
+    const auth = useAuthStore()
+
+    // если токен есть в хранилище, но еще не в сторе — синкнем
+    if (!auth.token) {
+      const t = localStorage.getItem('access_token') ?? sessionStorage.getItem('access_token')
+      if (t) auth.$patch({ token: t })
+    }
+
+    // если есть токен, но нет user — подтянем профиль
+    if (auth.token && !auth.user && !auth.loading) {
+      try { await auth.fetchMe() } catch {}
+    }
+
+    // правила прохода
+    if (to.meta.guestOnly && auth.isAuthenticated) return { path: '/dashboard' }
+    if (to.meta.requiresAuth && !auth.isAuthenticated) {
+      return { path: '/login', query: { redirect: to.fullPath } }
+    }
+  })
 
 export default router

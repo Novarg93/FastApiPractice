@@ -8,7 +8,8 @@ import { useCartStore } from '@/stores/cart'
 const cart = useCartStore()
 
 const auth = useAuthStore()
-const isAuth = auth.isAuthenticated
+
+const { isAuthenticated } = storeToRefs(auth)
 
 
 import {
@@ -25,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { ChevronsDown, Menu, X, ShoppingCart } from "lucide-vue-next";
+import { storeToRefs } from "pinia";
 
 
 
@@ -126,11 +128,11 @@ const isOpen = ref<boolean>(false);
                             {{ cart.totalItems }}
                         </span>
                     </router-link>
-                    <div v-if="!isAuth" class="flex items-center gap-4">
+                    <div v-if="!isAuthenticated" class="flex items-center gap-4">
                         <router-link class="hover:underline " to="/login">Login</router-link>
                         <router-link class="hover:underline " to="/register">Sign Up</router-link>
                     </div>
-                    <div v-else class="hidden justify-between items-center">
+                    <div v-else class=" justify-between items-center">
                         <router-link class="hover:underline " to="/dashboard">Dashboard</router-link>
                     </div>
 

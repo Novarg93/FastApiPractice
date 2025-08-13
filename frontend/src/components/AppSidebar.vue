@@ -26,6 +26,11 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
+import { computed, onMounted } from 'vue'
+
+
 const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
 })
@@ -48,14 +53,23 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  }, 
-  
-}
+const auth = useAuthStore()
+const { user, isAuthenticated, loading } = storeToRefs(auth)
+
+onMounted(() => {
+  if (!user.value) auth.fetchMe().catch(() => {})
+})
+
+
+const sidebarUser = computed(() => {
+  const u = user.value
+  return {
+    name:  (u?.name ?? u?.email?.split('@')[0] ?? 'User') as string,
+    email: (u?.email ?? '') as string,
+    avatar: (u as any)?.avatar ?? '', // NavUser ждёт string
+  }
+})
+
 </script>
 <template>
   <Sidebar class="border-transparent bg-muted/30  " v-bind="props">
@@ -66,7 +80,7 @@ const data = {
       <NavMain :items="mainNavItems" />      
     </SidebarContent>
     <SidebarFooter>
-      <NavUser class="rounded-lg hover:bg-muted/50" :user="data.user" />
+      <NavUser class="rounded-lg hover:bg-muted/50" :user="sidebarUser" />
     </SidebarFooter>
     <SidebarRail />
   </Sidebar>

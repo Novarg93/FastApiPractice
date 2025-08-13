@@ -24,7 +24,19 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
+const router = useRouter()
+const auth = useAuthStore()
+
+async function onLogout() {
+  try {
+    await auth.logout()
+  } finally {
+    router.push('/login')
+  }
+}
 
 const props = defineProps<{
   user: {
@@ -83,7 +95,7 @@ const { isMobile } = useSidebar()
               Settings
             </DropdownMenuItem>            
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem @select="onLogout">
             <LogOut />
             Log out
           </DropdownMenuItem>
