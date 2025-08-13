@@ -10,6 +10,7 @@ import Dashboard from '@/pages/Dashboard.vue'
 import ItemPage from '@/pages/ItemPage.vue'
 import Cart from '@/pages/Cart.vue'
 import Categories from '@/pages/Categories.vue'
+import Settings from '@/pages/Settings.vue'
 
 
 const router = createRouter({
@@ -91,6 +92,16 @@ const router = createRouter({
     meta: {
       title: 'Categories - ShadcnVue',
       description: 'Browse categories and choose a game for boost.',
+    },
+    
+  },
+    {
+    path: "/settings",
+    name: "Settings",
+    component: Settings,
+    meta: {
+      title: 'Setting - ShadcnVue',
+      description: 'Change your password or delete account.',
     },
     
   }

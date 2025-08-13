@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue'
-
+import { http } from '@/lib/http'
+import { useAuthStore } from '@/stores/auth'
 import { LoaderCircle } from 'lucide-vue-next';
 import axios from 'axios';
 import { ref } from 'vue';
 
-
+const auth = useAuthStore()
 
 const name = ref('')
 const email = ref('')
@@ -27,12 +28,17 @@ const register = async () => {
   errors.value = {}
   isLoading.value = true
   try {
-    const { data } = await axios.post('http://localhost:8000/auth/register', {
+    
+    await http.post('/auth/register', {
       name: name.value,
       email: email.value,
       password: password.value,
       password_confirmation: passwordConfirmation.value,
     })
+
+    
+    await auth.login(email.value, password.value, true)
+
     router.push('/dashboard')
   } catch (error: any) {
     if (error.response?.status === 422 && Array.isArray(error.response.data.detail)) {
@@ -41,7 +47,7 @@ const register = async () => {
         errors.value[field] = err.msg
       }
     } else {
-      console.error('Login error:', error)
+      console.error('Register error:', error)
     }
   } finally {
     isLoading.value = false
@@ -49,13 +55,7 @@ const register = async () => {
 }
 
 
-// ответ от FastApi и  в теле : 
-//  {
-//   "detail": [
-//     { "loc": ["body", "email"], "msg": "Invalid email", "type": "value_error" },
-//     { "loc": ["body", "password"], "msg": "Too short", "type": "value_error" }
-//   ]
-// }
+
 
 </script>
 
