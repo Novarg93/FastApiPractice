@@ -1,4 +1,6 @@
 # backend/app/main/app.py
+from venv import create
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -10,6 +12,7 @@ import app.models  # noqa: F401
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
     yield
 
 app = FastAPI(lifespan=lifespan)
