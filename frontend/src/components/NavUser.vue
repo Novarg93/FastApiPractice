@@ -27,6 +27,7 @@ import {
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
+
 const router = useRouter()
 const auth = useAuthStore()
 
@@ -89,13 +90,16 @@ const { isMobile } = useSidebar()
               </div>
             </div>
           </DropdownMenuLabel>          
-          <DropdownMenuSeparator />          
-            <DropdownMenuItem>
+          <DropdownMenuSeparator /> 
+          <router-link class="flex gap-2 cursor-pointer w-full " to="/settings">       
+            <DropdownMenuItem class="w-full cursor-pointer">
               <Settings />
               Settings
-            </DropdownMenuItem>            
+              
+            </DropdownMenuItem>   
+            </router-link>           
           <DropdownMenuSeparator />
-          <DropdownMenuItem @select="onLogout">
+          <DropdownMenuItem class="cursor-pointer" @select="onLogout">
             <LogOut />
             Log out
           </DropdownMenuItem>
