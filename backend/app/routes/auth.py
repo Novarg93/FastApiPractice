@@ -1,12 +1,15 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.params import Depends
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
 from app.database.session import SessionLocal
-from app.models.users import User
+from app.models import User, BlacklistedToken
 from app.schemas.users import UserCreate, UserLogin, Token, UserRead
 from app.core.security import hash_password, verify_password, create_access_token, get_current_user
 from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
+from core.security import oauth2_scheme, decode_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -73,3 +76,23 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserRead)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    payload = decode_access_token(token)
+    jti = payload.get("jti")
+    exp = payload.get("exp")
+    if not jti or not exp:
+        return
+
+    expires_at = datetime.fromtimestamp(int(exp), tz=timezone.utc)
+
+    exists = db.query(BlacklistedToken).filter(BlacklistedToken.jti == jti).first()
+    if not exists:
+        db.add(BlacklistedToken(jti=jti, user_id=current_user.id, expires_at=expires_at))
+        db.commit()
+    return

@@ -5,10 +5,12 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from uuid import uuid4
 
 from app.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.database.session import SessionLocal
-from app.models.users import User
+from app.models import User, BlacklistedToken
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -30,12 +32,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 # -------------------
 # Токен
 # -------------------
+from uuid import uuid4
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    now = datetime.now(timezone.utc)
+    expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire, "iat": now, "jti": str(uuid4())})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
 
 # -------------------
 # Получение сессии БД
@@ -65,14 +69,23 @@ def decode_access_token(token: str):
 
 # -------------------
 # Получение текущего пользователя
+# -------------------
 def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ) -> User:
-    """
-    Достаёт пользователя из JWT. Любая ошибка авторизации -> 401.
-    """
     payload = decode_access_token(token)
+
+    jti = payload.get("jti")
+    if jti:
+        revoked = db.query(BlacklistedToken).filter(BlacklistedToken.jti == jti).first()
+        if revoked:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token revoked",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
     sub = payload.get("sub")
     if sub is None:
         raise HTTPException(
@@ -90,10 +103,11 @@ def get_current_user(
         )
 
     user = db.query(User).filter(User.id == user_id).first()
-    if user is None:
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     return user
