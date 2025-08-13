@@ -1,21 +1,25 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict
 
+# Базовые
 class UserBase(BaseModel):
-    email: EmailStr
+    email: str
+    name: str | None = None
 
 class UserCreate(UserBase):
     password: str
 
-class UserLogin(UserBase):
+class UserLogin(BaseModel):
+    email: str
     password: str
 
-class UserRead(UserBase):
-    id: int
-
-    model_config = {
-        "from_attributes": True
- }
-
 class Token(BaseModel):
-     access_token: str
-     token_type: str = "bearer"
+    access_token: str
+    token_type: str = "bearer"
+
+# Чтение из ORM
+class UserRead(BaseModel):
+    id: int
+    email: str
+    name: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
