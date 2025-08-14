@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Toaster } from 'vue-sonner'
+
 
 
 
@@ -6,4 +8,5 @@
 
 <template>
   <router-view />
+  <Toaster position="bottom-right" richColors closeButton expand />
 </template>
