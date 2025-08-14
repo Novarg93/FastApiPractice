@@ -15,7 +15,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 ALLOWED = {"image/jpeg","image/png","image/webp"}
 MAX_SIZE = 2*1024*1024
 
-@router.post("/me/avatar", status_code=200)
+@router.post("/users/me/avatars", status_code=200)
 async def upload_avatar(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -53,7 +53,7 @@ async def upload_avatar(
     db.add(current_user); db.commit(); db.refresh(current_user)
     return {"avatar_url": rel_url}
 
-@router.delete("/me/avatar", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/users/me/avatars", status_code=status.HTTP_204_NO_CONTENT)
 def delete_avatar(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -68,25 +68,29 @@ def delete_avatar(
         db.add(current_user); db.commit()
     return
 
-@router.post("/me/change-password", status_code=status.HTTP_204_NO_CONTENT)
+
+@router.post("/users/me", status_code=status.HTTP_204_NO_CONTENT)
 def change_password(
-        data: PasswordChange,
-        db: Session = Depends(get_db),
-        current_user: User = Depends(get_current_user),
+    data: PasswordChange,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-        if not verify_password(data.old_password, current_user.hashed_password):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Incorrect password",
-            )
-
-        if len(data.new_password) < 4:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="New password must be at least 8 characters"
-            )
-
-        current_user.hashed_password = hash_password(data.new_password)
-        db.add(current_user)
-        db.commit()
-        return
+    if not verify_password(data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect current password",
+        )
+    if data.new_password != data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirmation do not match",
+        )
+    if len(data.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters",
+        )
+    current_user.hashed_password = hash_password(data.new_password)
+    db.add(current_user)
+    db.commit()
+    return

@@ -23,9 +23,10 @@ class UserRead(BaseModel):
     name: str | None = None
     avatar_url: str | None = None
 
+
 class PasswordChange(BaseModel):
-    old_password: str
+    current_password: str
     new_password: str
-    new_password2: str
+    confirm_password: str
 
     model_config = ConfigDict(from_attributes=True)
