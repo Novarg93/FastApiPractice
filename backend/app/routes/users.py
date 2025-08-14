@@ -15,7 +15,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 ALLOWED = {"image/jpeg","image/png","image/webp"}
 MAX_SIZE = 2*1024*1024
 
-@router.post("/users/me/avatars", status_code=200)
+@router.post("/me/avatar", status_code=200)
 async def upload_avatar(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -53,7 +53,7 @@ async def upload_avatar(
     db.add(current_user); db.commit(); db.refresh(current_user)
     return {"avatar_url": rel_url}
 
-@router.delete("/users/me/avatars", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/me/avatar", status_code=status.HTTP_204_NO_CONTENT)
 def delete_avatar(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -69,7 +69,7 @@ def delete_avatar(
     return
 
 
-@router.post("/users/me", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/me", status_code=status.HTTP_204_NO_CONTENT)
 def change_password(
     data: PasswordChange,
     db: Session = Depends(get_db),
