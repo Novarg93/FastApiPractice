@@ -1,4 +1,5 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, constr
+
 
 # Базовые
 class UserBase(BaseModel):
@@ -22,6 +23,9 @@ class UserRead(BaseModel):
     email: str
     name: str | None = None
     avatar_url: str | None = None
+
+class UserUpdate(BaseModel):
+    name: constr(min_length=1, max_length=20)
 
 
 class PasswordChange(BaseModel):
