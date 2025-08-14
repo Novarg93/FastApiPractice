@@ -9,13 +9,13 @@ from sqlalchemy.sql.functions import current_user
 from app.core.security import get_current_user, get_db, verify_password, hash_password
 from app.core.settings import settings
 from app.models.users import User
-from app.schemas.users import PasswordChange
+from app.schemas.users import PasswordChange, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
 ALLOWED = {"image/jpeg","image/png","image/webp"}
 MAX_SIZE = 2*1024*1024
 
-@router.post("/users/me/avatars", status_code=200)
+@router.post("/me/avatar", status_code=200)
 async def upload_avatar(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -53,7 +53,7 @@ async def upload_avatar(
     db.add(current_user); db.commit(); db.refresh(current_user)
     return {"avatar_url": rel_url}
 
-@router.delete("/users/me/avatars", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/me/avatar", status_code=status.HTTP_204_NO_CONTENT)
 def delete_avatar(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -69,7 +69,7 @@ def delete_avatar(
     return
 
 
-@router.post("/users/me", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/me/change_password", status_code=status.HTTP_204_NO_CONTENT)
 def change_password(
     data: PasswordChange,
     db: Session = Depends(get_db),
@@ -94,3 +94,23 @@ def change_password(
     db.add(current_user)
     db.commit()
     return
+
+@router.patch("/me", status_code=status.HTTP_204_NO_CONTENT)
+def change_name(
+     data: UserUpdate,
+     db: Session = Depends(get_db),
+     current_user: User = Depends(get_current_user),
+):
+    if not current_user.name == data.name:
+        return{
+            "name": current_user.name,
+        }
+
+    current_user.name = data.name
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "name": current_user.name,
+    }
