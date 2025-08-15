@@ -18,7 +18,7 @@ class StripeSuccessResp(BaseModel):
     currency: str
     session_id: str
 
-@router.post("/stripe/success", response_model=StripeSuccessResp)
+@router.get("/stripe/success", response_model=StripeSuccessResp)
 def stripe_success(
         session_id: str = Query(..., description="ID сессии Stripe Checkout"),
         db: Session = Depends(get_db),
