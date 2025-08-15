@@ -4,6 +4,9 @@ import { useAuthStore } from '@/stores/auth'
 import { Toaster } from '@/components/ui/sonner'
 import 'vue-sonner/style.css'
 import { useCartStore } from '@/stores/cart'
+import { useRouter } from 'vue-router'
+
+
 
 const cart = useCartStore()
 
@@ -11,7 +14,16 @@ const auth = useAuthStore()
 
 const { isAuthenticated } = storeToRefs(auth)
 
-
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Settings, LogOut, LayoutDashboard } from 'lucide-vue-next'
 import {
     Drawer,
     DrawerClose,
@@ -31,7 +43,19 @@ import { storeToRefs } from "pinia";
 
 
 const isOpen = ref<boolean>(false);
+const router = useRouter()
 
+
+const displayName = computed(
+  () => auth.user?.name?.trim() || auth.user?.email?.split('@')[0] || 'User'
+)
+const displayEmail = computed(() => auth.user?.email || '')
+// store мы уже нормализовали: в user.avatar лежит абсолютный URL
+const displayAvatar = computed(() => (auth.user as any)?.avatar || '')
+
+async function onLogout() {
+  try { await auth.logout() } finally { router.push('/login') }
+}
 
 
 </script>
@@ -132,9 +156,63 @@ const isOpen = ref<boolean>(false);
                         <router-link class="hover:underline " to="/login">Login</router-link>
                         <router-link class="hover:underline " to="/register">Sign Up</router-link>
                     </div>
-                    <div v-else class=" justify-between items-center">
-                        <router-link class="hover:underline " to="/dashboard">Dashboard</router-link>
-                    </div>
+                    <div v-else class="flex items-center">
+  <DropdownMenu>
+    <DropdownMenuTrigger as-child>
+      <!-- ТРИГГЕР: только аватар -->
+      <button
+        class="inline-flex items-center justify-center rounded-full p-0.5 hover:bg-muted/50 transition"
+        aria-label="Open user menu"
+      >
+        <Avatar class="h-8 w-8 rounded-full">
+          <AvatarImage :src="displayAvatar" :alt="displayName" />
+          <AvatarFallback class="rounded-full text-xs">
+            {{ displayName.slice(0,2).toUpperCase() }}
+          </AvatarFallback>
+        </Avatar>
+      </button>
+    </DropdownMenuTrigger>
+
+    <DropdownMenuContent class="min-w-56 border-border rounded-lg" align="end" :side-offset="8">
+      <DropdownMenuLabel class="p-0 font-normal">
+        <div class="flex items-center gap-2 px-2 py-2">
+          <Avatar class="h-8 w-8 rounded-full">
+            <AvatarImage :src="displayAvatar" :alt="displayName" />
+            <AvatarFallback class="rounded-full text-xs">
+              {{ displayName.slice(0,2).toUpperCase() }}
+            </AvatarFallback>
+          </Avatar>
+          <div class="grid text-left leading-tight">
+            <span class="truncate font-semibold text-sm">{{ displayName }}</span>
+            <span class="truncate text-xs text-muted-foreground">{{ displayEmail }}</span>
+          </div>
+        </div>
+      </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+<router-link to="/dashboard" class="block">
+        <DropdownMenuItem class="cursor-pointer">
+          <LayoutDashboard class="mr-2 h-4 w-4" />
+          Dashboard
+        </DropdownMenuItem>
+      </router-link>
+      <DropdownMenuSeparator />
+
+      <router-link to="/settings" class="block">
+        <DropdownMenuItem class="cursor-pointer">
+          <Settings class="mr-2 h-4 w-4" />
+          Settings
+        </DropdownMenuItem>
+      </router-link>
+
+      <DropdownMenuSeparator />
+
+      <DropdownMenuItem class="cursor-pointer" @select="onLogout">
+        <LogOut class="mr-2 h-4 w-4" />
+        Log out
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</div>
 
                 </div>
 
