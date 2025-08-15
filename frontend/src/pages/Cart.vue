@@ -14,6 +14,7 @@ import Input from '@/components/ui/input/Input.vue';
 import { useCartStore } from '@/stores/cart'
 
 const cart = useCartStore()
+const money = (n: number, currency = "USD", locale = "en-US") => new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 2 }).format(n)
 </script>
 
 <template>
@@ -60,7 +61,7 @@ const cart = useCartStore()
                       <Button variant="outline" size="icon" @click="cart.increment(it.id)">＋</Button>
                     </div>
                     <div class="text-end w-28">
-                      <p class="text-base font-bold">{{ it.price * it.quantity }}$</p>
+                      <p class="text-base font-bold"> {{ (cart.itemTotalCents(it.id) / 100).toFixed(2) }}$</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -88,7 +89,7 @@ const cart = useCartStore()
                   </div>
                   <div class="flex items-center justify-between">
                     <span>Subtotal</span>
-                    <span class="font-medium">{{ cart.subtotal }}$</span>
+                    <span class="font-medium">{{ money(cart.subtotal, 'USD', 'en-US') }}</span>
                   </div>
                 </div>
 

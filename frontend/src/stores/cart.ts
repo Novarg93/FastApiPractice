@@ -10,7 +10,24 @@ export const useCartStore = defineStore('cart', {
 
   getters: {
     totalItems: (s) => s.items.reduce((sum, i) => sum + i.quantity, 0),
-    subtotal:   (s) => s.items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+
+    // считаем в центах, чтобы не ловить артефакты плавающей точки
+    subtotalCents: (s): number =>
+      s.items.reduce(
+        (sum, i) => sum + Math.round(Number(i.price) * 100) * i.quantity,
+        0
+      ),
+
+    // доступ к другому геттеру — через this и обычную функцию
+    subtotal(): number {
+      return this.subtotalCents / 100
+    },
+
+    // (опционально) сумма по конкретной позиции в центах
+    itemTotalCents: (s) => (id: number) => {
+      const it = s.items.find(i => i.id === id)
+      return it ? Math.round(Number(it.price) * 100) * it.quantity : 0
+    },
   },
 
   actions: {
@@ -19,17 +36,35 @@ export const useCartStore = defineStore('cart', {
     },
     _load() {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        try { this.items = JSON.parse(raw) } catch {}
+      if (!raw) return
+      try {
+        const arr = JSON.parse(raw)
+        this.items = Array.isArray(arr)
+          ? arr.map((i: any) => ({
+              ...i,
+              price: Number(i.price) || 0,
+              quantity: Math.max(1, Number(i.quantity) || 1),
+            }))
+          : []
+      } catch {
+        /* ignore */
       }
     },
 
     addToCart(product: Product, qty = 1) {
       const existing = this.items.find(i => i.id === product.id)
-      if (existing) existing.quantity += qty
-      else this.items.push({ ...product, quantity: qty })
+      if (existing) {
+        existing.quantity += qty
+      } else {
+        this.items.push({
+          ...product,
+          price: Number(product.price), // на всякий случай приведём
+          quantity: qty,
+        })
+      }
       this._save()
     },
+
     increment(id: number) {
       const it = this.items.find(i => i.id === id)
       if (!it) return
@@ -59,6 +94,6 @@ export const useCartStore = defineStore('cart', {
     // вызывать один раз при старте приложения
     init() {
       this._load()
-    }
+    },
   },
 })
