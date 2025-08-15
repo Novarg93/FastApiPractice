@@ -11,6 +11,7 @@ import ItemPage from '@/pages/ItemPage.vue'
 import Cart from '@/pages/Cart.vue'
 import Categories from '@/pages/Categories.vue'
 import Settings from '@/pages/Settings.vue'
+import Checkout from '@/pages/Checkout.vue'
 
 
 const router = createRouter({
@@ -38,7 +39,7 @@ const router = createRouter({
       path: '/login',
       name: 'Login',
       component: Login,
-      meta: {
+      meta: { guestOnly: true,
       title: 'Login - ShadcnVue',
       description: 'Login to your account in ShadcnVue Project',
     },
@@ -47,7 +48,7 @@ const router = createRouter({
       path: '/register',
       name: 'Register',
       component: Register,
-        meta: {
+        meta: { guestOnly: true,
       title: 'Register - ShadcnVue',
       description: 'Register your account in ShadcnVue Project',
     },
@@ -56,7 +57,7 @@ const router = createRouter({
       path: '/forgot-password',
       name: 'ForgotPassword',
       component: ForgotPassword,
-        meta: {
+        meta: { guestOnly: true,
       title: 'Forgot Password - ShadcnVue',
       description: 'Reset your password and regain access to your account',
     },
@@ -74,7 +75,7 @@ const router = createRouter({
       path: '/dashboard',
       name: 'Dashboard',
       component: Dashboard,
-      meta: {
+      meta: { requiresAuth: true,
       title: 'Dashboard - ShadcnVue',
       description: 'Your personel dashboard in ShadcnVue',
     },
@@ -89,7 +90,7 @@ const router = createRouter({
     path: "/categories",
     name: "Categories",
     component: Categories,
-    meta: {
+    meta: { 
       title: 'Categories - ShadcnVue',
       description: 'Browse categories and choose a game for boost.',
     },
@@ -99,34 +100,47 @@ const router = createRouter({
     path: "/settings",
     name: "Settings",
     component: Settings,
-    meta: {
+    meta: { requiresAuth: true,
       title: 'Setting - ShadcnVue',
       description: 'Change your password or delete account.',
     },
-    
+  },
+  {
+    path: "/checkout", 
+    name:"Checkout", 
+    component: Checkout,
+    meta: { requiresAuth: true,
+      title: 'Checkout - ShadcnVue',
+      description: 'Checkout page for payment provide',
+    },
   }
   ],
 })
 
   router.beforeEach(async (to) => {
-    const auth = useAuthStore()
+  const auth = useAuthStore()
 
-    // если токен есть в хранилище, но еще не в сторе — синкнем
-    if (!auth.token) {
-      const t = localStorage.getItem('access_token') ?? sessionStorage.getItem('access_token')
-      if (t) auth.$patch({ token: t })
-    }
+  // 1) Синк токена из storage
+  if (!auth.token) {
+    const t = localStorage.getItem('access_token') ?? sessionStorage.getItem('access_token')
+    if (t) auth.$patch({ token: t })
+  }
 
-    // если есть токен, но нет user — подтянем профиль
-    if (auth.token && !auth.user && !auth.loading) {
-      try { await auth.fetchMe() } catch {}
-    }
+  // 2) Подтянуть профиль, если нужно
+  if (auth.token && !auth.user && !auth.loading) {
+    try { await auth.fetchMe() } catch {/* проглотим: 401 обработаем ниже правилом */}
+  }
 
-    // правила прохода
-    if (to.meta.guestOnly && auth.isAuthenticated) return { path: '/dashboard' }
-    if (to.meta.requiresAuth && !auth.isAuthenticated) {
-      return { path: '/login', query: { redirect: to.fullPath } }
-    }
-  })
+  // 3) Правила
+  if (to.meta?.guestOnly && auth.isAuthenticated) {
+    return { path: '/dashboard' }
+  }
+
+  if (to.meta?.requiresAuth && !auth.isAuthenticated) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
+
+  // иначе — пропуск
+})
 
 export default router

@@ -133,8 +133,11 @@ async function changePassword() {
 
   try {
     await http.post(
-      '/users/me/change-password',
-      { old_password: currentPassword.value, new_password: newPassword.value },
+      '/users/me/change_password',
+      { current_password: currentPassword.value, 
+        new_password: newPassword.value,
+        confirm_password: confirmPassword.value,
+       },
       { headers: auth.authHeader() }
     )
 
@@ -146,7 +149,8 @@ async function changePassword() {
   } catch (err: any) {
     if (err?.response?.status === 422 && Array.isArray(err.response.data?.detail)) {
       for (const d of err.response.data.detail) {
-        const field = d?.loc?.[1]
+        const loc = d?.loc
+        const field = Array.isArray(loc) ? loc[loc.length - 1] : null // берем ПОСЛЕДНИЙ элемент
         if (field) pwErrors.value[field] = d?.msg ?? 'Invalid'
       }
     } else {

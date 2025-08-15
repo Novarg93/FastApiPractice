@@ -92,7 +92,7 @@ const cart = useCartStore()
                   </div>
                 </div>
 
-                <Button class="w-full" :disabled="cart.items.length === 0">
+                <Button class="w-full" :disabled="cart.items.length === 0" @click="$router.push('/checkout')">
                   Proceed to Checkout
                 </Button>
 
