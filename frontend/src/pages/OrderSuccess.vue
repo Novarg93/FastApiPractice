@@ -32,6 +32,14 @@ onMounted(async () => {
     loading.value = false
     return
   }
+
+  // Попробуем подтянуть профиль (если токен есть, а user ещё нет)
+  try {
+    if (auth.token && !auth.user && !auth.loading) {
+      await auth.fetchMe()
+    }
+  } catch { /* игнор: если 401 — дальше просто покажем кнопку "Войти" */ }
+
   try {
     const { data } = await http.get('/orders/stripe/success', {
       params: { session_id: sessionId.value },
@@ -48,8 +56,9 @@ onMounted(async () => {
   }
 })
 
-function goOrders() { router.push('/dashboard') } // или сделай отдельную страницу заказов
+function goOrders() { router.push('/dashboard') }
 function goCatalog() { router.push('/catalog') }
+function goLogin()  { router.push({ path: '/login', query: { redirect: route.fullPath } }) }
 </script>
 
 <template>
@@ -82,6 +91,7 @@ function goCatalog() { router.push('/catalog') }
           <CardContent class="text-red-500">{{ error }}</CardContent>
           <CardFooter class="flex gap-2">
             <Button variant="outline" @click="goCatalog">В каталог</Button>
+            <Button v-if="!auth.isAuthenticated" @click="goLogin">Войти и посмотреть заказ</Button>
           </CardFooter>
         </Card>
 

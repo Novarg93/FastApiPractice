@@ -118,7 +118,7 @@ const router = createRouter({
   path: '/success',
   name: 'PaymentSuccess',
   component: OrderSuccess,
-  meta: { requiresAuth: true, title: 'Payment success' },
+  meta: { title: 'Payment success' },
 }
   ],
 })
