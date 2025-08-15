@@ -10,7 +10,13 @@ engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
-# Включаем foreign keys в SQLite
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 @event.listens_for(engine, "connect")
 def enable_sqlite_foreign_keys(dbapi_connection, connection_record):
     if isinstance(dbapi_connection, sqlite3.Connection):
