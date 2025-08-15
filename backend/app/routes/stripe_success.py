@@ -17,7 +17,6 @@ class StripeSuccessResp(BaseModel):
     payment_status: str
     amount_total: float
     currency: str
-    session_id: str
 
 @router.get("/stripe/success", response_model=StripeSuccessResp)  # ← GET, не POST
 def stripe_success(
@@ -62,5 +61,4 @@ def stripe_success(
         "payment_status": payment_status,
         "amount_total": amount_total,
         "currency": currency,
-        "session_id": session_id,
     }
