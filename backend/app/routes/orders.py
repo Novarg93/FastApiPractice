@@ -21,31 +21,31 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/", response_model=[OrderRead])
-def create_order(order_data: OrderCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if not order_data.items:
-        raise HTTPException(status_code=404, detail="No items")
-
-    new_order = Order(user_id=current_user.id, status="Pending")
-    db.add(new_order)
-    db.flush()
-
-    for item_data in order_data.items:
-        db_item = db.query(Item).filter(Item.id == item_data.id).first()
-        if not db_item:
-            raise HTTPException(status_code=404, detail="Item not found")
-
-        order_item = OrderItem(
-            order_id=new_order.id,
-            item_id=db_item.id,
-            quantity=item_data.quantity,
-            price=item_data.price,
-        )
-        db.add(order_item)
-
-    db.commit()
-    db.refresh(new_order)
-    return new_order
+# @router.post("/cart", response_model=OrderRead)
+# def create_order(order_data: OrderCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+#     if not order_data.items:
+#         raise HTTPException(status_code=404, detail="No items")
+#
+#     new_order = Order(user_id=current_user.id, status="Pending")
+#     db.add(new_order)
+#     db.flush()
+#
+#     for item_data in order_data.items:
+#         db_item = db.query(Item).filter(Item.id == item_data.id).first()
+#         if not db_item:
+#             raise HTTPException(status_code=404, detail="Item not found")
+#
+#         order_item = OrderItem(
+#             order_id=new_order.id,
+#             item_id=db_item.id,
+#             quantity=item_data.quantity,
+#             price=item_data.price,
+#         )
+#         db.add(order_item)
+#
+#     db.commit()
+#     db.refresh(new_order)
+#     return new_order
 
 @router.post("/checkout")
 def checkout(
@@ -96,14 +96,14 @@ def checkout(
 
     return {"checkout_url": session.url}
 
-@router.get("/me/orders", response_model=List[OrderRead])
+@router.get("users/me/orders", response_model=List[OrderRead])
 def get_my_orders(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
         return db.query(Order).filter(Order.user_id == current_user.id).all()
 
-@router.get("/orders/{order_id}", response_model=OrderRead)
+@router.get("/{order_id}", response_model=OrderRead)
 def get_order(order_id: int, db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
