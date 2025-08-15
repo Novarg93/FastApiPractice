@@ -25,5 +25,5 @@ class OrderItem(Base):
     quantity = Column(Integer, default=1)
     price = Column(Float, nullable=False)
 
-    order = relationship('Order', back_populates='items', cascade='all, delete-orphan')
-    item = relationship('Item', back_populates='order_items', cascade='all, delete-orphan')
+    order = relationship('Order', back_populates='items')
+    item = relationship('Item', back_populates='order_items')
