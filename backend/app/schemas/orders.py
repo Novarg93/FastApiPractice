@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 from typing import List, Optional
 from app.schemas.users import UserRead
@@ -25,6 +27,8 @@ class OrderRead(BaseModel):
     user_id: int
     status: str
     total_price: float
+    created_at: datetime
+    updated_at: datetime | None = None
     items: List[OrderItemRead]
     user: Optional[UserRead] = None
 

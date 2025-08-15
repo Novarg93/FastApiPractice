@@ -1,6 +1,5 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Float
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Float, func
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 from datetime import datetime
 from app.database.session import Base
 
@@ -10,8 +9,11 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     status = Column(String, default='pending')
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
     total_price = Column(Float, default=0)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
     user = relationship('User', back_populates='orders')
     items = relationship('OrderItem', back_populates='order', cascade='all, delete-orphan')
 
