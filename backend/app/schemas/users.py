@@ -27,7 +27,6 @@ class UserRead(BaseModel):
 class UserUpdate(BaseModel):
     name: constr(min_length=1, max_length=20)
 
-
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str
