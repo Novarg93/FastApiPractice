@@ -11,7 +11,7 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     status = Column(String, default='pending')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
+    total_price = Column(Float, default=0)
     user = relationship('User', back_populates='orders')
     items = relationship('OrderItem', back_populates='order', cascade='all, delete-orphan')
 
