@@ -7,6 +7,7 @@ from pathlib import Path
 from app.routes.items import router as items_router
 from app.routes.auth import router as auth_router
 from app.routes.users import router as users_router
+from app.routes.orders import router as orders_router
 from app.database.session import engine, Base
 from app.core.settings import settings
 import app.models  # noqa: F401
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(users_router)
 app.include_router(items_router)
 app.include_router(auth_router)
+app.include_router(orders_router)
 
 
 app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name="media")

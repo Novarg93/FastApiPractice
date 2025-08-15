@@ -1,24 +1,31 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+from app.schemas.users import UserRead
+from app.schemas.items import ItemRead
 
-from schemas.users import UserUpdate, UserRead
+class OrderItemRead(BaseModel):
+    id: int
+    item_id: int
+    quantity: int
+    price: float
+    item: Optional[ItemRead] = None
 
+    model_config = {"from_attributes": True}
 
-class OrderCreateBase(BaseModel):
+class OrderCreateItem(BaseModel):
     item_id: int
     quantity: int
     price: float
 
 class OrderCreate(BaseModel):
-    items: List[OrderCreateBase]
+    items: List[OrderCreateItem]
 
 class OrderRead(BaseModel):
     id: int
     user_id: int
     status: str
-    items: list[OrderCreateBase]
-    user: UserRead
+    total_price: float
+    items: List[OrderItemRead]
+    user: Optional[UserRead] = None
 
-    model_config = {
-        "from attributes": True
-    }
+    model_config = {"from_attributes": True}
