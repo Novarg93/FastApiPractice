@@ -81,18 +81,31 @@ def get_me(current_user: User = Depends(get_current_user)):
 def logout(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
-    payload = decode_access_token(token)
+    try:
+        payload = decode_access_token(token)
+    except Exception:
+        # Если токен вообще невалиден — просто выходим без ошибки
+        return
+
     jti = payload.get("jti")
     exp = payload.get("exp")
+    sub = payload.get("sub")
+
     if not jti or not exp:
         return
 
     expires_at = datetime.fromtimestamp(int(exp), tz=timezone.utc)
 
+    # user_id в BlacklistedToken можно хранить как None, если юзера уже нет
+    user_id = None
+    if sub:
+        try:
+            user_id = int(sub)
+        except (TypeError, ValueError):
+            pass
+
     exists = db.query(BlacklistedToken).filter(BlacklistedToken.jti == jti).first()
     if not exists:
-        db.add(BlacklistedToken(jti=jti, user_id=current_user.id, expires_at=expires_at))
+        db.add(BlacklistedToken(jti=jti, user_id=user_id, expires_at=expires_at))
         db.commit()
-    return
