@@ -1,21 +1,18 @@
+// src/stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { http } from '@/lib/http'
 
-type User = { id: number; email: string; name?: string | null }
+type User = { id: number; email: string; name?: string | null; avatar?: string | null }
 type LoginResp = { access_token: string; token_type: string }
 type StorageDriver = 'local' | 'session'
-
 const ACCESS_KEY = 'access_token'
 
-// читаем токен из localStorage / sessionStorage (и мигрируем legacy 'token')
 function readToken(): { token: string | null; driver: StorageDriver | null } {
   let t = localStorage.getItem(ACCESS_KEY)
   if (t) return { token: t, driver: 'local' }
   t = sessionStorage.getItem(ACCESS_KEY)
   if (t) return { token: t, driver: 'session' }
-
-  // legacy: кто-то мог писать под ключом "token"
   const legacy = localStorage.getItem('token') ?? sessionStorage.getItem('token')
   if (legacy) {
     localStorage.setItem(ACCESS_KEY, legacy)
@@ -23,30 +20,31 @@ function readToken(): { token: string | null; driver: StorageDriver | null } {
     sessionStorage.removeItem('token')
     return { token: legacy, driver: 'local' }
   }
-
   return { token: null, driver: null }
 }
 
 export const useAuthStore = defineStore('auth', () => {
   const { token: initial, driver: initialDriver } = readToken()
-  const token = ref<string | null>(initial)
-  const driver = ref<StorageDriver>(initialDriver ?? 'local')
-  const user = ref<User | null>(null)
+  const token   = ref<string | null>(initial)
+  const driver  = ref<StorageDriver>(initialDriver ?? 'local')
+  const user    = ref<User | null>(null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
+  const error   = ref<string | null>(null)
+
+  // ВАЖНО: готовность стора (гидратация + попытка /auth/me завершена)
+  const ready   = ref(false)
+  let initPromise: Promise<void> | null = null
+
   const isAuthenticated = computed(() => !!token.value && !!user.value)
 
   function setToken(next: string | null, target: StorageDriver = driver.value) {
-    // очистим оба хранилища, чтобы не было рассинхрона
     localStorage.removeItem(ACCESS_KEY)
     sessionStorage.removeItem(ACCESS_KEY)
-
     if (next) {
       if (target === 'local') localStorage.setItem(ACCESS_KEY, next)
       else sessionStorage.setItem(ACCESS_KEY, next)
       driver.value = target
     }
-
     token.value = next
   }
 
@@ -55,7 +53,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchMe() {
-    // резинк: если ref пуст, но в хранилище токен есть — подхватим
     if (!token.value) {
       const t = localStorage.getItem(ACCESS_KEY) ?? sessionStorage.getItem(ACCESS_KEY)
       if (t) token.value = t
@@ -64,7 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     loading.value = true; error.value = null
     try {
-      const { data } = await http.get<User>('/auth/me', { headers: authHeader() })
+      const { data } = await http.get<User>('/auth/me', { __skipAuthRedirect: true })
       user.value = data
     } catch (e: any) {
       if (e?.response?.status === 401) {
@@ -78,6 +75,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Делает fetchMe один раз и выставляет ready=true
+  async function init() {
+    if (initPromise) return initPromise
+    initPromise = (async () => {
+      try { await fetchMe() } catch {} finally { ready.value = true }
+    })()
+    return initPromise
+  }
+
   async function login(email: string, password: string, remember: boolean) {
     loading.value = true; error.value = null
     try {
@@ -85,9 +91,6 @@ export const useAuthStore = defineStore('auth', () => {
       setToken(data.access_token, remember ? 'local' : 'session')
       await fetchMe()
       return true
-    } catch (e: any) {
-      error.value = e?.response?.data?.detail ?? 'Ошибка входа'
-      throw e
     } finally {
       loading.value = false
     }
@@ -95,22 +98,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     try { await http.post('/auth/logout', {}, { headers: authHeader() }) } catch {}
-    setToken(null)
-    user.value = null
+    setToken(null); user.value = null
   }
 
-  async function init() {
-    await fetchMe()
-  }
-
-  return {
-    // state
-    token, user, loading, error,
-    // getters
-    isAuthenticated,
-    // actions
-    init, fetchMe, login, logout,
-    // util
-    authHeader,
-  }
+  return { token, user, loading, error, ready, isAuthenticated, init, fetchMe, login, logout, authHeader }
 })

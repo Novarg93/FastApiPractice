@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 import { http } from '@/lib/http'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -13,6 +14,7 @@ type OrderRead = { id: number; status: string; total_price: number; items: Order
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const cart = useCartStore()
 
 const sessionId = computed(() => (route.query.session_id as string) || '')
 const loading = ref(true)
@@ -49,6 +51,9 @@ onMounted(async () => {
     paymentStatus.value = data.payment_status
     amountTotal.value = data.amount_total
     currency.value = (data.currency || 'USD').toUpperCase()
+    if (paymentStatus.value === 'paid') {
+      cart.clear()
+    }
   } catch (e: any) {
     error.value = e?.response?.data?.detail ?? 'Failed to load order'
   } finally {

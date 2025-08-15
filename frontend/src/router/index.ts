@@ -126,18 +126,9 @@ const router = createRouter({
   router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  // 1) Синк токена из storage
-  if (!auth.token) {
-    const t = localStorage.getItem('access_token') ?? sessionStorage.getItem('access_token')
-    if (t) auth.$patch({ token: t })
-  }
+  // ждём инициализации (гарантирует, что user подтянут или точно его нет)
+  await auth.init()
 
-  // 2) Подтянуть профиль, если нужно
-  if (auth.token && !auth.user && !auth.loading) {
-    try { await auth.fetchMe() } catch {/* проглотим: 401 обработаем ниже правилом */}
-  }
-
-  // 3) Правила
   if (to.meta?.guestOnly && auth.isAuthenticated) {
     return { path: '/dashboard' }
   }
@@ -145,8 +136,6 @@ const router = createRouter({
   if (to.meta?.requiresAuth && !auth.isAuthenticated) {
     return { path: '/login', query: { redirect: to.fullPath } }
   }
-
-  // иначе — пропуск
 })
 
 export default router
