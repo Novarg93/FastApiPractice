@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { http } from '@/lib/http'
+import { http, toAbsolute } from '@/lib/http'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -81,7 +81,8 @@ async function saveProfile() {
       auth.user = {
         ...auth.user!,
         name: data?.name ?? nextName,
-        avatar: data?.avatar_url ?? (auth.user as any)?.avatar ?? null,
+        avatar_url: data?.avatar_url ?? (auth.user as any)?.avatar_url ?? null,
+        avatar: toAbsolute(data?.avatar_url ?? (auth.user as any)?.avatar ?? null),
       }
     }
 
@@ -96,8 +97,13 @@ async function saveProfile() {
 
       const url = data?.avatar_url ?? null
         if (url) {
-        avatarUrl.value = toAbsolute(url)
-        auth.user = { ...auth.user!, avatar: toAbsolute(url) } // храним уже абсолютный — удобно для <img>
+          const abs = toAbsolute(url)
+          avatarUrl.value = abs
+          auth.user = {
+            ...auth.user!,
+            avatar_url: url,
+            avatar: abs,
+          } as any
         }
 
       if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value)
@@ -175,15 +181,7 @@ async function deleteAccount() {
   }
 }
 
-onMounted(async () => {
-  if (!auth.user) {
-    await auth.fetchMe().catch(() => {})
-  }
-  name.value = auth.user?.name ?? ''
-  // берем avatar | avatar_url, приводим к абсолютному
-  const raw = (auth.user as any)?.avatar ?? (auth.user as any)?.avatar_url ?? null
-  avatarUrl.value = toAbsolute(raw)
-})
+
 
 </script>
 

@@ -29,6 +29,7 @@ import {
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted } from 'vue'
+import { toAbsolute } from '@/lib/http'
 
 
 const props = withDefaults(defineProps<SidebarProps>(), {
@@ -62,11 +63,12 @@ onMounted(() => {
 
 
 const sidebarUser = computed(() => {
-  const u = user.value
+  const u = auth.user as any
   return {
     name:  (u?.name ?? u?.email?.split('@')[0] ?? 'User') as string,
     email: (u?.email ?? '') as string,
-    avatar: (u as any)?.avatar ?? '', // NavUser ждёт string
+    
+    avatar: toAbsolute(u?.avatar ?? u?.avatar_url) || '',
   }
 })
 

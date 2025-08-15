@@ -1,9 +1,23 @@
 // src/stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { http } from '@/lib/http'
+import { http, toAbsolute } from '@/lib/http'
 
-type User = { id: number; email: string; name?: string | null; avatar?: string | null }
+type UserMeResp = {
+  id: number
+  email: string
+  name?: string | null
+  avatar?: string | null
+  avatar_url?: string | null
+}
+
+type User = {
+  id: number
+  email: string
+  name?: string | null
+  avatar?: string | null   // ⟵ будем хранить ПОЛЕ avatar как абсолютный url
+  avatar_url?: string | null
+}
 type LoginResp = { access_token: string; token_type: string }
 type StorageDriver = 'local' | 'session'
 const ACCESS_KEY = 'access_token'
@@ -53,27 +67,41 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchMe() {
-    if (!token.value) {
-      const t = localStorage.getItem(ACCESS_KEY) ?? sessionStorage.getItem(ACCESS_KEY)
-      if (t) token.value = t
-    }
-    if (!token.value) { user.value = null; return }
-
-    loading.value = true; error.value = null
-    try {
-      const { data } = await http.get<User>('/auth/me', { __skipAuthRedirect: true })
-      user.value = data
-    } catch (e: any) {
-      if (e?.response?.status === 401) {
-        setToken(null)
-        user.value = null
-      }
-      error.value = e?.response?.data?.detail ?? 'Не удалось получить профиль'
-      throw e
-    } finally {
-      loading.value = false
-    }
+  // подхватываем токен при старте, как и было у тебя
+  if (!token.value) {
+    const t = localStorage.getItem('access_token') ?? sessionStorage.getItem('access_token')
+    if (t) token.value = t
   }
+  if (!token.value) { user.value = null; return }
+
+  loading.value = true; error.value = null
+  try {
+    const { data } = await http.get<UserMeResp>('/auth/me', {
+      // не редиректим при старте
+      
+      __skipAuthRedirect: true
+    })
+
+    // ✅ нормализуем: приводим к единому полю `avatar` (абсолютный url)
+    const abs = toAbsolute(data.avatar ?? data.avatar_url ?? null)
+    user.value = {
+      id: data.id,
+      email: data.email,
+      name: data.name ?? null,
+      avatar_url: data.avatar_url ?? null,
+      avatar: abs ?? null,
+    }
+  } catch (e: any) {
+    if (e?.response?.status === 401) {
+      setToken(null)
+      user.value = null
+    }
+    error.value = e?.response?.data?.detail ?? 'Не удалось получить профиль'
+    throw e
+  } finally {
+    loading.value = false
+  }
+}
 
   // Делает fetchMe один раз и выставляет ready=true
   async function init() {
