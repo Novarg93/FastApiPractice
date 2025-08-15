@@ -15,7 +15,7 @@ export const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000'
 export function toAbsolute(url?: string | null) {
   if (!url) return null
   if (/^https?:\/\//i.test(url)) return url
-  return API_BASE.replace(/\/$/, '') + url // склеиваем base и относительный путь
+  return API_BASE.replace(/\/$/, '') + url 
 }
 
 

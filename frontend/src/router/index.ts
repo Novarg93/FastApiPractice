@@ -12,7 +12,7 @@ import Cart from '@/pages/Cart.vue'
 import Categories from '@/pages/Categories.vue'
 import Settings from '@/pages/Settings.vue'
 import Checkout from '@/pages/Checkout.vue'
-
+import OrderSuccess from '@/pages/OrderSuccess.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -113,7 +113,13 @@ const router = createRouter({
       title: 'Checkout - ShadcnVue',
       description: 'Checkout page for payment provide',
     },
-  }
+  },
+  {
+  path: '/success',
+  name: 'PaymentSuccess',
+  component: OrderSuccess,
+  meta: { requiresAuth: true, title: 'Payment success' },
+}
   ],
 })
 
