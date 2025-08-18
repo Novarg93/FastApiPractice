@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
 from app.database.session import SessionLocal
+from app.models import Category
 from app.models.items import Item
 from app.schemas.items import ItemCreate, ItemRead, ItemListResponse
 
@@ -39,3 +40,20 @@ def read_item(item_id: int, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
+
+@router.get("/{game_id}/{category_slug}")
+def get_items(game_id: int, category_slug: str, db: Session = Depends(get_db)):
+    if category_slug == "all":
+        items = db.query(Item).filter(Item.game_id == game_id).all()
+    else:
+        items = (
+            db.query(Item)
+            .join(Item.categories)
+            .filter(Category.slug == category_slug, Category.game_id == game_id)
+            .all()
+        )
+
+    if not items:
+        raise HTTPException(status_code=404, detail="No items found")
+
+    return items

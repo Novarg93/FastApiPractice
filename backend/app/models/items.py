@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -13,8 +13,12 @@ class Item(Base):
     quality = Column(Integer)
 
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False, index=True)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True, index=True)
+    order_items = relationship('OrderItem', back_populates='item')
 
     game = relationship("Game", back_populates="items")
-    category = relationship("Category", back_populates="items")
-    order_items = relationship('OrderItem', back_populates='item')
+    categories = relationship(
+        "Category",
+        secondary="item_categories",
+        back_populates="items"
+    )
+
