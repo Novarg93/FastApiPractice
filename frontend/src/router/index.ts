@@ -91,7 +91,10 @@ const router = createRouter({
       path: '/catalog/:gameSlug',
       name: 'catalog',
       component: () => import('@/pages/Catalog.vue'),
-      props: true,
+       props: (route) => ({
+        gameSlug: route.params.gameSlug as string,
+        initialCategory: (route.query.category as string) || 'all',
+      }),
     },
     {
     path: "/settings",

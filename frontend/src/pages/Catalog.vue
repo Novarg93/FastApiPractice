@@ -1,147 +1,174 @@
+<!-- src/pages/CatalogView.vue -->
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { useRoute, useRouter } from 'vue-router'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue
-} from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCartStore } from '@/stores/cart'
-import type { Product } from '@/types'
+import type { Item, Category } from '@/types/catalog'
 import { toast } from 'vue-sonner'
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import Button from '@/components/ui/button/Button.vue'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { ShoppingCart } from 'lucide-vue-next'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import { useCartStore } from '@/stores/cart'
 
-interface Item {
-  id: number
-  name: string
-  price: number
-  image?: string | null
-  quantity?: number | null
-  quality?: number | null
-}
+const props = defineProps<{
+  gameSlug: string
+  initialCategory?: string
+}>()
 
-type SortChoice = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'
-
-const items = ref<Item[]>([])
-const searchQuery = ref('')
-const sortChoice = ref<SortChoice>('name-asc')
-const sortType = ref<'name' | 'price'>('name')
-const sortOrder = ref<'asc' | 'desc'>('asc')
-
-// пагинация/инфинити
-const page = ref(1)
-const limit = ref(24)          // сколько грузим за раз
-const total = ref(0)
-const hasMore = ref(true)
-
-// загрузка
-const isInitialLoading = ref(false) // загрузка первой страницы (скелетоны карточек)
-const isAppending = ref(false)      // догрузка следующих страниц (спиннер внизу)
-const searchTimeout = ref<number | null>(null)
-const SKELETON_COUNT = 10
-
+const router = useRouter()
+const route = useRoute()
 const cart = useCartStore()
 
-// адаптер под тип корзины (если cart.addToCart ждёт Product)
-function toProduct(i: Item): Product {
-  return {
-    id: i.id,
-    title: i.name,
-    price: i.price,
-    description: '',           // если нужно — подтяни с бэка
-    image_url: i.image ? `/images/${i.image}` : '/images/placeholder.png',
-  } as Product
-}
+// ---- state ----
+const gameId = ref<number | null>(null)
+const gameName = ref<string>('')
+const categories = ref<Category[]>([])
+const selectedCategory = ref<string>(props.initialCategory ?? 'all')
 
-const addToCartAndNotify = (item: Item) => {
-  cart.addToCart(toProduct(item))
-  toast.success('Succesfully added to cart')
-}
+// для простоты — работаем с полной выборкой в памяти, пагинация клиентская
+const rawItems = ref<Item[]>([])
 
-// общий загрузчик
-async function fetchPage(p: number) {
-  const isFirst = p === 1
-  if (isFirst) {
-    isInitialLoading.value = true
-  } else {
-    if (isAppending.value || !hasMore.value) return
-    isAppending.value = true
-  }
+// поиск/сорт
+const search = ref('')
+const sort = ref<'name-asc'|'name-desc'|'price-asc'|'price-desc'>('name-asc')
 
-  try {
-    const { data } = await axios.get('http://127.0.0.1:8000/items/', {
-      params: {
-        page: p,
-        limit: limit.value,
-        q: searchQuery.value || '',
-        sort_by: sortType.value,
-        order: sortOrder.value,
-      },
-    })
-
-    // бэк возвращает { items, total }
-    const batch: Item[] = data.items ?? []
-    total.value = data.total ?? 0
-
-    if (isFirst) items.value = batch
-    else items.value = [...items.value, ...batch]
-
-    // есть ли ещё страницы
-    hasMore.value = p * limit.value < total.value
-    page.value = p + 1
-  } catch (e) {
-    console.error(e)
-  } finally {
-    if (isFirst) isInitialLoading.value = false
-    else isAppending.value = false
-  }
-}
-
-function resetAndLoad() {
-  page.value = 1
-  hasMore.value = true
-  items.value = []
-  fetchPage(1)
-}
-
-// дебаунс поиска
-watch(searchQuery, () => {
-  if (searchTimeout.value) clearTimeout(searchTimeout.value)
-  searchTimeout.value = window.setTimeout(() => resetAndLoad(), 500)
-})
-
-// сортировка
-watch(
-  sortChoice,
-  (val) => {
-    sortType.value = val.startsWith('name') ? 'name' : 'price'
-    sortOrder.value = val.endsWith('asc') ? 'asc' : 'desc'
-    resetAndLoad()
-  },
-  { immediate: true }
-)
-
-// IntersectionObserver
+// пагинация (клиентская)
+const page = ref(1)
+const limit = ref(24)
+const isLoading = ref(false)
+const isAppending = ref(false)
+const SKELETON_COUNT = 10
 const sentinel = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
+// ---- helpers ----
+function toImgSrc(image?: string | null) {
+  return image ? `/images/${image}` : '/images/placeholder.png'
+}
+
+function addToCart(item: Item) {
+  cart.addToCart({
+    id: item.id,
+    title: item.name,
+    price: item.price,
+    image_url: toImgSrc(item.image),
+  } as any)
+  toast.success('Added to cart')
+}
+
+// ---- backend calls (замени пути, если у тебя другие) ----
+async function fetchGameBySlug(slug: string) {
+  const { data } = await axios.get(`http://127.0.0.1:8000/games/by-slug/${slug}`)
+  return data as { id: number; name: string; slug: string }
+}
+
+async function fetchCategories(gameId: number) {
+  const { data } = await axios.get(`http://127.0.0.1:8000/categories`, {
+    params: { game_id: gameId },
+  })
+  return data as Category[]
+}
+
+async function fetchItemsAll(gameId: number) {
+  const { data } = await axios.get(`http://127.0.0.1:8000/items/${gameId}/all`)
+  return data as Item[]
+}
+
+async function fetchItemsByCategory(gameId: number, categorySlug: string) {
+  const { data } = await axios.get(`http://127.0.0.1:8000/items/${gameId}/${categorySlug}`)
+  return data as Item[]
+}
+
+// ---- loading pipeline ----
+async function loadGameAndCats() {
+  isLoading.value = true
+  try {
+    const g = await fetchGameBySlug(props.gameSlug)
+    gameId.value = g.id
+    gameName.value = g.name
+
+    const cats = await fetchCategories(g.id)
+    categories.value = cats
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function loadItems(categorySlug: string) {
+  if (!gameId.value) return
+  isLoading.value = true
+  rawItems.value = []
+  page.value = 1
+
+  try {
+    const list = categorySlug === 'all'
+      ? await fetchItemsAll(gameId.value)
+      : await fetchItemsByCategory(gameId.value, categorySlug)
+
+    rawItems.value = list
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// ---- filters/sort/pagination (клиентские) ----
+const filteredSorted = computed(() => {
+  let arr = rawItems.value
+
+  // поиск
+  const q = search.value.trim().toLowerCase()
+  if (q) arr = arr.filter(i => i.name.toLowerCase().includes(q))
+
+  // сорт
+  const [key, dir] = sort.value.split('-') as ['name'|'price','asc'|'desc']
+  arr = [...arr].sort((a,b) => {
+    const va = key === 'name' ? a.name.localeCompare(b.name) : a.price - b.price
+    return dir === 'asc' ? va : -va
+  })
+
+  return arr
+})
+
+const visible = computed(() => filteredSorted.value.slice(0, page.value * limit.value))
+const hasMore = computed(() => visible.value.length < filteredSorted.value.length)
+
+// ---- URL sync ----
+function pushCategoryToUrl(slug: string) {
+  router.replace({ name: 'catalog', params: { gameSlug: props.gameSlug }, query: { category: slug } })
+}
+
+// ---- watchers ----
+watch(() => props.gameSlug, async () => {
+  await loadGameAndCats()
+  await loadItems(selectedCategory.value)
+}, { immediate: true })
+
+watch(selectedCategory, async (slug) => {
+  pushCategoryToUrl(slug)
+  await loadItems(slug)
+})
+
+watch([search, sort], () => {
+  page.value = 1
+})
+
+// ---- intersection observer ----
 function onIntersect(entries: IntersectionObserverEntry[]) {
   const [entry] = entries
-  if (entry.isIntersecting) {
-    fetchPage(page.value) // догружаем следующую страницу
+  if (entry.isIntersecting && hasMore.value && !isAppending.value) {
+    isAppending.value = true
+    setTimeout(() => { // имитация догрузки
+      page.value += 1
+      isAppending.value = false
+    }, 150)
   }
 }
 
 onMounted(() => {
-  // первая загрузка уже делается watcher’ом sortChoice (immediate), так что тут ничего не делаем
-  observer = new IntersectionObserver(onIntersect, {
-    root: null,
-    rootMargin: '400px', // подгружать заранее
-    threshold: 0,
-  })
+  observer = new IntersectionObserver(onIntersect, { rootMargin: '400px', threshold: 0 })
   if (sentinel.value) observer.observe(sentinel.value)
 })
 
@@ -153,91 +180,83 @@ onBeforeUnmount(() => {
 
 <template>
   <DefaultLayout>
-    <section class="w-[90%] 2xl:w-[75%] mx-auto rounded mt-10 py-12 lg:pb-20">
-      <div>
-        <div class="flex flex-col items-center gap-4 justify-between w-full p-2">
-          <div>
-            <!-- показываем общее количество с бэка -->
-            <span class="text-xl">Товаров всего: {{ total }}</span>
-          </div>
-          <div class="flex gap-4 items-center pr-4 pt-2">
-            <Input class="border w-96 rounded-md px-2" v-model="searchQuery" placeholder="Filter by name" />
-            <Select v-model="sortChoice">
-              <SelectTrigger><SelectValue placeholder="Sort" /></SelectTrigger>
-              <SelectContent class="border-border">
-                <SelectGroup>
-                  <SelectItem value="name-asc">A → Z</SelectItem>
-                  <SelectItem value="name-desc">Z → A</SelectItem>
-                  <SelectItem value="price-asc">Price ↑</SelectItem>
-                  <SelectItem value="price-desc">Price ↓</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+    <section class="w-[90%] 2xl:w-[75%] mx-auto py-8 md:py-12">
+      <div class="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-2xl font-semibold">{{ gameName || 'Catalog' }}</h1>
+          <p class="text-sm text-muted-foreground" v-if="rawItems.length">Items: {{ filteredSorted.length }}</p>
         </div>
 
-        <!-- первый экран: скелетоны карточек -->
-        <div v-if="isInitialLoading" class="flex flex-wrap w-full gap-4 mt-4 justify-between items-start" aria-busy="true">
-          <div v-for="n in SKELETON_COUNT" :key="n"
-               class="flex flex-col w-full max-w-xs md:max-w-none mx-auto md:w-[30%] lg:w-[23%] xl:w-[20%] 2xl:w-[18%] h-full overflow-hidden rounded-xl border border-border p-0">
-            <Skeleton class="w-full aspect-square" />
-            <div class="p-6 space-y-3">
-              <Skeleton class="h-5 w-3/4" />
-              <Skeleton class="h-4 w-1/2" />
-            </div>
-            <div class="px-6 pb-6">
-              <Skeleton class="h-10 w-full" />
-            </div>
-          </div>
+        <div class="flex items-center gap-3">
+          <Input v-model="search" placeholder="Search items…" class="w-64" />
+          <select v-model="sort" class="border rounded-md h-9 px-2">
+            <option value="name-asc">A → Z</option>
+            <option value="name-desc">Z → A</option>
+            <option value="price-asc">Price ↑</option>
+            <option value="price-desc">Price ↓</option>
+          </select>
         </div>
-
-        <!-- список карточек -->
-        <div v-else class="flex flex-wrap w-full gap-4 mt-4 justify-between items-start">
-          <Card v-for="item in items" :key="item.id"
-                class="bg-muted/60 dark:bg-card flex flex-col w-full max-w-xs md:max-w-none mx-auto md:w-[30%] lg:w-[23%] xl:w-[20%] 2xl:w-[18%] h-full overflow-hidden group/hoverimg border-border">
-            <CardHeader class="p-0 gap-0">
-              <div class="h-full overflow-hidden">
-                <img
-                  @error="(e) => (e.target as HTMLImageElement).src = '/images/placeholder.png'"
-                  :src="item.image ? `/images/${item.image}` : '/images/placeholder.png'"
-                  :alt="item.name"
-                  class="w-full aspect-square object-contain saturate-0 transition-all duration-200 ease-linear size-full group-hover/hoverimg:saturate-100 group-hover/hoverimg:scale-[1.01]"
-                />
-              </div>
-              <CardTitle class="py-6 pb-4 px-6">
-                <router-link :to="`/item/${item.id}`" class="hover:text-primary cursor-pointer">
-                  {{ item.name }}
-                </router-link>
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent class="text-muted-foreground">
-              {{ item.price }} $
-            </CardContent>
-
-            <CardFooter class="space-x-4 mt-auto">
-              <Button @click="addToCartAndNotify(item)" class="cursor-pointer w-full">
-                <ShoppingCart /> Add to cart
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-
-        <!-- пусто -->
-        <div v-if="!isInitialLoading && items.length === 0" class="text-sm text-muted-foreground mt-6">
-          Ничего не найдено
-        </div>
-
-        <!-- индикатор догрузки -->
-        <div class="mt-6 text-center text-sm text-muted-foreground" v-if="!isInitialLoading">
-          <div v-if="isAppending">Loading more…</div>
-          <div v-else-if="!hasMore">That’s all 👋</div>
-        </div>
-
-        <!-- сентинел -->
-        <div ref="sentinel" class="h-1"></div>
       </div>
+
+      <!-- категории -->
+      <div class="mt-6 flex gap-2 flex-wrap">
+        <Button
+          variant="secondary"
+          :class="selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : ''"
+          @click="selectedCategory = 'all'"
+        >
+          All
+        </Button>
+
+        <Button
+          v-for="c in categories" :key="c.id"
+          variant="secondary"
+          :class="selectedCategory === c.slug ? 'bg-primary text-primary-foreground' : ''"
+          @click="selectedCategory = c.slug"
+        >
+          {{ c.name }}
+        </Button>
+      </div>
+
+      <!-- скелетоны -->
+      <div v-if="isLoading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
+        <div v-for="n in SKELETON_COUNT" :key="n" class="border rounded-xl overflow-hidden">
+          <Skeleton class="w-full aspect-square" />
+          <div class="p-4 space-y-2">
+            <Skeleton class="h-5 w-3/4" />
+            <Skeleton class="h-4 w-1/2" />
+            <Skeleton class="h-9 w-full" />
+          </div>
+        </div>
+      </div>
+
+      <!-- список -->
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
+        <Card v-for="item in visible" :key="item.id" class="flex flex-col">
+          <CardHeader class="p-0">
+            <img :src="toImgSrc(item.image)" :alt="item.name" class="w-full aspect-square object-contain" />
+            <CardTitle class="px-4 pt-4">
+              <router-link :to="`/item/${item.id}`" class="hover:text-primary">{{ item.name }}</router-link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent class="px-4 text-muted-foreground">
+            {{ item.price }} $
+          </CardContent>
+          <CardFooter class="px-4 pb-4 mt-auto">
+            <Button class="w-full" @click="addToCart(item)">
+              <ShoppingCart class="mr-2" /> Add to cart
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      <!-- подвал листинга -->
+      <div class="mt-6 text-center text-sm text-muted-foreground" v-if="!isLoading">
+        <div v-if="isAppending">Loading more…</div>
+        <div v-else-if="!hasMore">That’s all 👋</div>
+      </div>
+
+      <div ref="sentinel" class="h-1"></div>
     </section>
   </DefaultLayout>
 </template>
-

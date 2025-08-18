@@ -17,7 +17,7 @@
                                     alt="Desk with leather desk pad, walnut desk organizer, wireless keyboard and mouse, and porcelain mug."
                                     class="w-full rounded-lg bg-white object-cover object-left group-hover:opacity-75 max-sm:h-80 sm:aspect-2/1 lg:aspect-square" />
                                 <h3 class="mt-6 text-sm ">
-                                   <router-link :to="{ name: 'catalog', params: { gameSlug: 'path-of-exile-2' }, query: { category: 'all' } }">
+                                   <router-link :to="{ name: 'catalog', params: { gameSlug: 'poe2' }, query: { category: 'all' } }">
                                     Path of Exile 2
                                     </router-link>
                                 </h3>
@@ -28,7 +28,7 @@
                                     alt="Wood table with porcelain mug, leather journal, brass pen, leather key ring, and a houseplant."
                                     class="w-full rounded-lg bg-white object-cover object-right group-hover:opacity-75 max-sm:h-80 sm:aspect-2/1 lg:aspect-square" />
                                 <h3 class="mt-6 text-sm ">
-                                    <router-link :to="{ name: 'catalog', params: { gameSlug: 'diablo-4' }, query: { category: 'all' } }">
+                                    <router-link :to="{ name: 'catalog', params: { gameSlug: 'ffxiv' }, query: { category: 'all' } }">
                                         Diablo 4
                                         </router-link>
                                 </h3>
@@ -39,7 +39,7 @@
                                     alt="Collection of four insulated travel bottles on wooden shelf."
                                     class="w-full rounded-lg bg-white object-cover group-hover:opacity-75 max-sm:h-80 sm:aspect-2/1 lg:aspect-square" />
                                 <h3 class="mt-6 text-sm ">
-                                    <router-link :to="{ name: 'catalog', params: { gameSlug: 'destiny-2' }, query: { category: 'all' } }">
+                                    <router-link :to="{ name: 'catalog', params: { gameSlug: 'destiny2' }, query: { category: 'all' } }">
                                             Destiny 2
                                             </router-link>
                                 </h3>
