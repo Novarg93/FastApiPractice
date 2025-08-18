@@ -8,8 +8,7 @@ from app.routes.items import router as items_router
 from app.routes.auth import router as auth_router
 from app.routes.users import router as users_router
 from app.routes.orders import router as orders_router
-from app.routes.stripe_success import router as stripe_success_router
-from app.database.session import engine, Base
+from app.stripe.stripe_success import router as stripe_success_router
 from app.core.settings import settings
 import app.models  # noqa: F401
 
