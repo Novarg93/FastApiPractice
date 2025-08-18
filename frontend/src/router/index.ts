@@ -88,15 +88,11 @@ const router = createRouter({
     
   },
     {
-    path: "/categories",
-    name: "Categories",
-    component: Categories,
-    meta: { 
-      title: 'Categories - ShadcnVue',
-      description: 'Browse categories and choose a game for boost.',
+      path: '/catalog/:gameSlug',
+      name: 'catalog',
+      component: () => import('@/pages/Catalog.vue'),
+      props: true,
     },
-    
-  },
     {
     path: "/settings",
     name: "Settings",

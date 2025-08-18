@@ -11,6 +11,7 @@ import Community from '@/components/Community.vue';
 import Pricing from '@/components/Pricing.vue';
 import Contact from '@/components/Contact.vue';
 import FAQ from '@/components/FAQ.vue'
+import Categories from './Categories.vue';
 
 
 </script>
@@ -18,7 +19,7 @@ import FAQ from '@/components/FAQ.vue'
 <template>
   
    <DefaultLayout>
-    <Hero/>
+    <Categories/>
     <Benefits/>
     <Features/>
     <Services/>

@@ -51,14 +51,14 @@ const money = (n: number, currency = "USD", locale = "en-US") => new Intl.Number
                   <!-- qty + price -->
                   <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
-                      <Button variant="outline" size="icon" @click="cart.decrement(it.id)">−</Button>
+                      <Button class="border-border" variant="outline" size="icon" @click="cart.decrement(it.id)">−</Button>
                       <Input
                         class="w-14 text-center"
                         :model-value="it.quantity"
                         @update:model-value="(v: string | number) => cart.setQuantity(it.id, Number(v))"
                         type="number" min="1"
                       />
-                      <Button variant="outline" size="icon" @click="cart.increment(it.id)">＋</Button>
+                      <Button class="border-border" variant="outline" size="icon" @click="cart.increment(it.id)">＋</Button>
                     </div>
                     <div class="text-end w-28">
                       <p class="text-base font-bold"> {{ (cart.itemTotalCents(it.id) / 100).toFixed(2) }}$</p>
