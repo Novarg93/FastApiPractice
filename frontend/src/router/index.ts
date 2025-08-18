@@ -13,6 +13,7 @@ import Categories from '@/pages/Categories.vue'
 import Settings from '@/pages/Settings.vue'
 import Checkout from '@/pages/Checkout.vue'
 import OrderSuccess from '@/pages/OrderSuccess.vue'
+import Chat from '@/pages/Chat.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -103,6 +104,15 @@ const router = createRouter({
     meta: { requiresAuth: true,
       title: 'Setting - ShadcnVue',
       description: 'Change your password or delete account.',
+    },
+  },
+  {
+    path: "/chat",
+    name: "Chat",
+    component: Chat,
+    meta: { requiresAuth: true,
+      title: 'Chat - ShadcnVue',
+      description: 'Chat with support',
     },
   },
   {

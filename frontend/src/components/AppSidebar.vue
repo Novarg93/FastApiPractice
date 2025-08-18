@@ -43,13 +43,13 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Messages',
-        href: '/dashboard',
+        title: 'Chat',
+        href: '/chat',
         icon: MessageCircle,
     },
     {
         title: 'Wallet',
-        href: '/dashboard',
+        href: '/catalog',
         icon: Wallet,
     },
 ];
