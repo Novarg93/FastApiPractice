@@ -204,12 +204,12 @@ async function deleteAccount() {
                         <BreadcrumbList>
                             <BreadcrumbItem class="hidden md:block">
                                 <BreadcrumbLink href="/dashboard">
-                                    Building Your Application
+                                    Dashboard
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator class="hidden md:block" />
                             <BreadcrumbItem>
-                                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                                <BreadcrumbPage>Settings</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
@@ -242,7 +242,7 @@ async function deleteAccount() {
                             <Label>Avatar</Label>
                             <div class="flex items-center gap-4">
                                 <img v-if="avatarPreview || avatarUrl" :src="avatarPreview || avatarUrl || undefined"
-                                    alt="Avatar" class="w-16 h-16 rounded-full object-cover border" />
+                                    alt="Avatar" class="w-16 h-16 rounded-full object-cover border  border-border" />
                                     <img v-else src="/images/vaal_orb.png"
                                     alt="Avatar" class="w-16 h-16 rounded-full object-cover border border-border" />
                                 <div class="flex items-center gap-2">

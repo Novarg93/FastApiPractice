@@ -103,7 +103,7 @@ async function onLogout() {
                             </DrawerDescription>
                         </DrawerHeader>
                         <div class="flex flex-col items-center gap-2">
-                            <router-link to="/categories">Categories</router-link>
+                            <router-link to="/categories">Games</router-link>
                             <router-link to="/">FAQ</router-link>
                             <router-link to="/">Reviews</router-link>
                             <router-link to="/">Contact Us</router-link>
@@ -114,7 +114,7 @@ async function onLogout() {
                             <router-link class="hover:underline " to="/register">Sign Up</router-link>
                         </div>
                         <div class="hidden flex-col items-center">
-                            <router-link class="hover:underline " to="/categories">Categories</router-link>
+                            <router-link class="hover:underline " to="/categories">Games</router-link>
                         </div>
                     </div>
 
@@ -127,7 +127,7 @@ async function onLogout() {
             <nav class="hidden lg:block">
                 <ul class="flex gap-4 items-center">
                     <li>
-                        <router-link class="hover:underline " to="/categories">Categories</router-link>
+                        <router-link class="hover:underline " to="/categories">Games</router-link>
                     </li>
                     <li>
                         <router-link class="hover:underline " to="/catalog">Catalog</router-link>
