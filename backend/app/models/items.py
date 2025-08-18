@@ -17,3 +17,4 @@ class Item(Base):
 
     game = relationship("Game", back_populates="items")
     category = relationship("Category", back_populates="items")
+    order_items = relationship('OrderItem', back_populates='item')
