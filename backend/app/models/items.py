@@ -10,7 +10,7 @@ class Item(Base):
     price = Column(Float, nullable=False)
     image = Column(String)
     quantity = Column(Integer)
-    quality = Column(Integer)
+    quality = Column(String)
 
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False, index=True)
     order_items = relationship('OrderItem', back_populates='item')
