@@ -1,5 +1,5 @@
-# backend/app/models/__init__.py
-from .users import User  # noqa: F401
-from .orders import Order, OrderItem  # noqa: F401
-from .items import Item  # noqa: F401
-from .auth import  BlacklistedToken
+from .users import User
+from .items import Item
+from .orders import Order
+from .auth import BlacklistedToken
+from .categories import Category
