@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/sonner'
 import 'vue-sonner/style.css'
 import { useCartStore } from '@/stores/cart'
 import { useRouter } from 'vue-router'
-
+import GlobalSearch from "@/components/GlobalSearch.vue";
 
 
 const cart = useCartStore()
@@ -15,12 +15,12 @@ const auth = useAuthStore()
 const { isAuthenticated } = storeToRefs(auth)
 
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Settings, LogOut, LayoutDashboard } from 'lucide-vue-next'
@@ -47,14 +47,14 @@ const router = useRouter()
 
 
 const displayName = computed(
-  () => auth.user?.name?.trim() || auth.user?.email?.split('@')[0] || 'User'
+    () => auth.user?.name?.trim() || auth.user?.email?.split('@')[0] || 'User'
 )
 const displayEmail = computed(() => auth.user?.email || '')
 // store мы уже нормализовали: в user.avatar лежит абсолютный URL
 const displayAvatar = computed(() => (auth.user as any)?.avatar || '')
 
 async function onLogout() {
-  try { await auth.logout() } finally { router.push('/login') }
+    try { await auth.logout() } finally { router.push('/login') }
 }
 
 
@@ -63,7 +63,7 @@ async function onLogout() {
 
 <template>
     <div class="flex flex-col min-h-screen">
-        
+
         <header
             class='w-[90%] 2xl:w-[75%]  mx-auto border border-border mt-10  rounded-2xl flex justify-between items-center p-2 bg-card shadow-md'>
             <router-link to="/" class="font-bold text-lg flex items-center">
@@ -125,7 +125,8 @@ async function onLogout() {
 
             <!-- Desktop -->
             <nav class="hidden lg:block">
-                <ul class="flex gap-4 items-center">
+                <GlobalSearch/>
+                <!-- <ul class="flex gap-4 items-center">
                     <li>
                         <router-link class="hover:underline " to="/categories">Games</router-link>
                     </li>
@@ -138,7 +139,7 @@ async function onLogout() {
                     <li>
                         <router-link class="hover:underline " to="/login">Contact Us</router-link>
                     </li>
-                </ul>
+                </ul> -->
             </nav>
 
             <div class="hidden lg:flex pr-2 xl:pr-4">
@@ -157,62 +158,62 @@ async function onLogout() {
                         <router-link class="hover:underline " to="/register">Sign Up</router-link>
                     </div>
                     <div v-else class="flex items-center">
-  <DropdownMenu>
-    <DropdownMenuTrigger as-child>
-      <!-- ТРИГГЕР: только аватар -->
-      <button
-        class="inline-flex items-center justify-center rounded-full p-0.5 hover:bg-muted/50 transition"
-        aria-label="Open user menu"
-      >
-        <Avatar class="h-8 w-8 rounded-full">
-          <AvatarImage :src="displayAvatar" :alt="displayName" />
-          <AvatarFallback class="rounded-full text-xs">
-            {{ displayName.slice(0,2).toUpperCase() }}
-          </AvatarFallback>
-        </Avatar>
-      </button>
-    </DropdownMenuTrigger>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger as-child>
+                                <!-- ТРИГГЕР: только аватар -->
+                                <button
+                                    class="inline-flex items-center justify-center rounded-full p-0.5 hover:bg-muted/50 transition"
+                                    aria-label="Open user menu">
+                                    <Avatar class="h-8 w-8 rounded-full">
+                                        <AvatarImage :src="displayAvatar" :alt="displayName" />
+                                        <AvatarFallback class="rounded-full text-xs">
+                                            {{ displayName.slice(0, 2).toUpperCase() }}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </button>
+                            </DropdownMenuTrigger>
 
-    <DropdownMenuContent class="min-w-56 border-border rounded-lg" align="end" :side-offset="8">
-      <DropdownMenuLabel class="p-0 font-normal">
-        <div class="flex items-center gap-2 px-2 py-2">
-          <Avatar class="h-8 w-8 rounded-full">
-            <AvatarImage :src="displayAvatar" :alt="displayName" />
-            <AvatarFallback class="rounded-full text-xs">
-              {{ displayName.slice(0,2).toUpperCase() }}
-            </AvatarFallback>
-          </Avatar>
-          <div class="grid text-left leading-tight">
-            <span class="truncate font-semibold text-sm">{{ displayName }}</span>
-            <span class="truncate text-xs text-muted-foreground">{{ displayEmail }}</span>
-          </div>
-        </div>
-      </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-<router-link to="/dashboard" class="block">
-        <DropdownMenuItem class="cursor-pointer">
-          <LayoutDashboard class="mr-2 h-4 w-4" />
-          Dashboard
-        </DropdownMenuItem>
-      </router-link>
-      <DropdownMenuSeparator />
+                            <DropdownMenuContent class="min-w-56 border-border rounded-lg" align="end" :side-offset="8">
+                                <DropdownMenuLabel class="p-0 font-normal">
+                                    <div class="flex items-center gap-2 px-2 py-2">
+                                        <Avatar class="h-8 w-8 rounded-full">
+                                            <AvatarImage :src="displayAvatar" :alt="displayName" />
+                                            <AvatarFallback class="rounded-full text-xs">
+                                                {{ displayName.slice(0, 2).toUpperCase() }}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div class="grid text-left leading-tight">
+                                            <span class="truncate font-semibold text-sm">{{ displayName }}</span>
+                                            <span class="truncate text-xs text-muted-foreground">{{ displayEmail
+                                                }}</span>
+                                        </div>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <router-link to="/dashboard" class="block">
+                                    <DropdownMenuItem class="cursor-pointer">
+                                        <LayoutDashboard class="mr-2 h-4 w-4" />
+                                        Dashboard
+                                    </DropdownMenuItem>
+                                </router-link>
+                                <DropdownMenuSeparator />
 
-      <router-link to="/settings" class="block">
-        <DropdownMenuItem class="cursor-pointer">
-          <Settings class="mr-2 h-4 w-4" />
-          Settings
-        </DropdownMenuItem>
-      </router-link>
+                                <router-link to="/settings" class="block">
+                                    <DropdownMenuItem class="cursor-pointer">
+                                        <Settings class="mr-2 h-4 w-4" />
+                                        Settings
+                                    </DropdownMenuItem>
+                                </router-link>
 
-      <DropdownMenuSeparator />
+                                <DropdownMenuSeparator />
 
-      <DropdownMenuItem class="cursor-pointer" @select="onLogout">
-        <LogOut class="mr-2 h-4 w-4" />
-        Log out
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-</div>
+                                <DropdownMenuItem class="cursor-pointer" @select="onLogout">
+                                    <LogOut class="mr-2 h-4 w-4" />
+                                    Log out
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
 
                 </div>
 
