@@ -19,7 +19,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-const route = useRoute()
+
 const cart = useCartStore()
 
 // ---- state ----
@@ -40,7 +40,7 @@ const page = ref(1)
 const limit = ref(24)
 const isLoading = ref(false)
 const isAppending = ref(false)
-const SKELETON_COUNT = 10
+const SKELETON_COUNT = 5
 const sentinel = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
@@ -182,15 +182,15 @@ onBeforeUnmount(() => {
   <DefaultLayout>
     <section class="w-[90%] 2xl:w-[75%] mx-auto py-8 md:py-12">
       <div class="flex items-end justify-between gap-4 flex-wrap">
-        <div>
+        <div class="flex items-center gap-10" >
           <h1 class="text-2xl font-semibold">{{ gameName || 'Catalog' }}</h1>
-          <p class="text-sm text-muted-foreground" v-if="rawItems.length">Items: {{ filteredSorted.length }}</p>
+          <p class="text-xl" v-if="rawItems.length">Items: {{ filteredSorted.length }}</p>
         </div>
-
+         
         <div class="flex items-center gap-3">
           <Input v-model="search" placeholder="Search items…" class="w-64" />
-          <select v-model="sort" class="border rounded-md h-9 px-2">
-            <option value="name-asc">A → Z</option>
+          <select v-model="sort" class="border border-border bg-background  rounded-md h-9 px-2">
+            <option  value="name-asc">A → Z</option>
             <option value="name-desc">Z → A</option>
             <option value="price-asc">Price ↑</option>
             <option value="price-desc">Price ↓</option>
@@ -200,13 +200,7 @@ onBeforeUnmount(() => {
 
       <!-- категории -->
       <div class="mt-6 flex gap-2 flex-wrap">
-        <Button
-          variant="secondary"
-          :class="selectedCategory === 'all' ? 'bg-primary text-primary-foreground' : ''"
-          @click="selectedCategory = 'all'"
-        >
-          All
-        </Button>
+       
 
         <Button
           v-for="c in categories" :key="c.id"
@@ -220,7 +214,7 @@ onBeforeUnmount(() => {
 
       <!-- скелетоны -->
       <div v-if="isLoading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-        <div v-for="n in SKELETON_COUNT" :key="n" class="border rounded-xl overflow-hidden">
+        <div v-for="n in SKELETON_COUNT" :key="n" class="border border-border rounded-xl overflow-hidden">
           <Skeleton class="w-full aspect-square" />
           <div class="p-4 space-y-2">
             <Skeleton class="h-5 w-3/4" />
@@ -232,14 +226,14 @@ onBeforeUnmount(() => {
 
       <!-- список -->
       <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-        <Card v-for="item in visible" :key="item.id" class="flex flex-col">
+        <Card v-for="item in visible" :key="item.id" class="flex border-border   flex-col">
           <CardHeader class="p-0">
             <img :src="toImgSrc(item.image)" :alt="item.name" class="w-full aspect-square object-contain" />
             <CardTitle class="px-4 pt-4">
               <router-link :to="`/item/${item.id}`" class="hover:text-primary">{{ item.name }}</router-link>
             </CardTitle>
           </CardHeader>
-          <CardContent class="px-4 text-muted-foreground">
+          <CardContent class="px-4 border-border text-muted-foreground">
             {{ item.price }} $
           </CardContent>
           <CardFooter class="px-4 pb-4 mt-auto">
