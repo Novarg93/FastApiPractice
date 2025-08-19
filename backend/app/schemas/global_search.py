@@ -5,5 +5,3 @@ class ItemSearchResponse(BaseModel):
     name: str
     price: float
     image: str | None
-    game: str
-    category: str

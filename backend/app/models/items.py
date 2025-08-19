@@ -6,7 +6,7 @@ class Item(Base):
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, index=True)
     price = Column(Float, nullable=False)
     image = Column(String)
     quantity = Column(Integer)

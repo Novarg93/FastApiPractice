@@ -5,7 +5,6 @@ from sqlalchemy import asc, desc
 from app.database.session import SessionLocal
 from app.models import Category, Game
 from app.models.items import Item
-from app.schemas.global_search import ItemSearchResponse
 from app.schemas.items import ItemCreate, ItemRead, ItemListResponse
 
 router = APIRouter(prefix="/items", tags=["items"])
@@ -56,13 +55,3 @@ def items_by_category(game_id: int, category_slug: str, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Category not found")
     return category.items
 
-@router.get("/items/search", response_model=list[ItemSearchResponse])
-def search_items(query: str = Query(..., min_length=2), db: Session = Depends(get_db)):
-    items = (
-        db.query(Item.id, Item.name, Item.price, Item.image, Game.name.label("game"), Category.name.label("category"))
-        .join(Item.categories)
-        .join(Category.game)
-        .filter(Item.name.ilike(f"%{query}%"))
-        .all()
-    )
-    return items
