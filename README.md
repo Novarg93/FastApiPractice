@@ -23,17 +23,15 @@ Backend
 ````````
 python -m venv venv
 venv\Scripts\activate
-
+pip install python-dotenv
+pip install asyncpg
 cd backend
+pip install fastapi uvicorn sqlalchemy "python-jose[cryptography]" passlib[bcrypt] python-multipart
 source venv/bin/activate  # Windows: venv\Scripts\activate
+
 venv\Scripts\activate
+uvicorn app.main.app:app --reload
 
-#Install dependencies
-pip install -r requirements.txt
-
-#Backend Start
-python run.py
-````````
 
 
 ### Compile and Hot-Reload for Development
