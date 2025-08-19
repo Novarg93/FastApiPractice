@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from app.routes import games, categories
 from app.routes.items import router as items_router
 from app.routes.auth import router as auth_router
 from app.routes.users import router as users_router
@@ -33,10 +34,13 @@ app.add_middleware(
 )
 
 app.include_router(users_router)
+app.include_router(games.router)
+app.include_router(categories.router)
 app.include_router(items_router)
 app.include_router(auth_router)
 app.include_router(orders_router)
 app.include_router(stripe_success_router)
+
 
 
 app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name="media")
