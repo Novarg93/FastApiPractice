@@ -13,3 +13,8 @@ def get_game_by_slug(slug: str, db: Session = Depends(get_db)):
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     return game
+
+
+@router.get("/", response_model=list[GameRead])
+def list_games(db: Session = Depends(get_db)):
+    return db.query(Game).all()
