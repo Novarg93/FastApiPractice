@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List
 
 from app.database.session import get_db
-from app.services.CurrencyService import calculate_price
+from app.services.currency_service import calculate_price
 
 router = APIRouter(prefix="/cart", tags=["cart"])
 
@@ -17,8 +17,8 @@ class PriceRequest(BaseModel):
     quantity: int
     selected_options: List[OptionInput]
 
-@router.get("/price")
-def get_price(request: Request, db: Session = Depends(get_db)):
+@router.post("/price")
+def post_price(request: Request, db: Session = Depends(get_db)):
     try:
         result = calculate_price(
             db,
