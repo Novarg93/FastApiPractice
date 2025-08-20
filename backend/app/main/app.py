@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from app.services import cart
 from app.routes import games, categories, search
 from app.routes.items import router as items_router
 from app.routes.auth import router as auth_router
@@ -41,6 +42,7 @@ app.include_router(auth_router)
 app.include_router(orders_router)
 app.include_router(stripe_success_router)
 app.include_router(search.router)
+app.include_router(cart.router)
 
 
 
