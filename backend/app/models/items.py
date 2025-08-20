@@ -14,6 +14,7 @@ class Item(Base):
 
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False, index=True)
     order_items = relationship('OrderItem', back_populates='item')
+    options = relationship("ItemOption", back_populates="item", cascade="all, delete-orphan")
 
     game = relationship("Game", back_populates="items")
     categories = relationship(
