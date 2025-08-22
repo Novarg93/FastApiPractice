@@ -18,13 +18,13 @@ class PriceRequest(BaseModel):
     selected_options: List[OptionInput]
 
 @router.post("/price")
-def post_price(request: Request, db: Session = Depends(get_db)):
+def post_price(request: PriceRequest, db: Session = Depends(get_db)):
     try:
         result = calculate_price(
             db,
             request.product_id,
             request.quantity,
-            [opt.dict() for opt in request.selected_options]
+            [opt.model_dump() for opt in request.selected_options]
         )
         return result
     except Exception as e:

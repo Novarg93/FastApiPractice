@@ -1,5 +1,6 @@
 from pydantic import BaseModel, field_validator
 from typing import Literal, get_args
+from app.schemas.options import OptionSchema
 
 Quality = Literal[
     "exotic", "currency", "gear", "material", "weapon",
@@ -7,6 +8,7 @@ Quality = Literal[
 ]
 
 _ALLOWED = set(get_args(Quality)) - {"other"}
+
 
 class ItemBase(BaseModel):
     name: str
@@ -25,15 +27,19 @@ class ItemBase(BaseModel):
         v = str(v).strip().lower()
         return v if v in _ALLOWED else "other"
 
+
 class ItemCreate(ItemBase):
     pass
 
+
 class ItemRead(ItemBase):
     id: int
+    options: list[OptionSchema] = []
 
     model_config = {
         "from_attributes": True
     }
+
 
 class ItemListResponse(BaseModel):
     items: list[ItemRead]

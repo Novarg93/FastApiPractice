@@ -1,110 +1,96 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 from app.models.items import Item
+from app.models.options import Option, OptionChoice
 
 
 def apply_price_adj(price_adj: dict, value: int = 1):
     multiplier = 1.0
-    abs_sum = 0
+    abs_sum = 0.0  # Используем float, т.к. цена - float
 
     if not price_adj:
         return multiplier, abs_sum
 
-    order = price_adj['order']
+    if "pct" in price_adj and price_adj["pct"] is not None:
+        multiplier *= 1 + price_adj["pct"] / 100
 
-    if order == "pctThenAbs":
-        if "pct" in price_adj and price_adj["pct"] is not None:
-            multiplier *= 1 + price_adj["pct"]
-        if "absCents" in price_adj and price_adj["absCents"] is not None:
-            abs_sum += price_adj["absCents"] * value
-
-    elif order == "absThenPct":
-        if "absCents" in price_adj and price_adj["absCents"] is not None:
-            abs_sum += price_adj["absCents"] * value
-        if "pct" in price_adj and price_adj["pct"] is not None:
-            multiplier *= 1 + price_adj["pct"]
-
-    else:
-        if "pct" in price_adj and price_adj["pct"] is not None:
-            multiplier *= 1 + price_adj["pct"]
-        if "absCents" in price_adj and price_adj["absCents"] is not None:
-            abs_sum += price_adj["absCents"] * value
+    if "abs_cents" in price_adj and price_adj["abs_cents"] is not None:
+        abs_sum += price_adj["abs_cents"] * value
 
     if "multiplier" in price_adj and price_adj["multiplier"] is not None:
-        multiplier *= 1 + price_adj["multiplier"]
+        multiplier *= price_adj["multiplier"]
 
     return multiplier, abs_sum
 
 
-def calculate_price(
-        db: Session,
-        product_id: int,
-        quantity: int,
-        selections: dict,
-        product_options: list[dict],
-) -> dict:
+def calculate_price(db: Session, product_id: int, quantity: int, selected_options: list):
+    # Загружаем товар и его опции одним запросом
+    item = db.query(Item).options(
+        joinedload(Item.options).joinedload(Option.choices)
+    ).filter(Item.id == product_id).first()
 
-    item = db.query(Item).filter(Item.id == product_id).first()
     if not item:
-        raise ValueError("Product not found")
+        raise ValueError("Товар не найден")
 
-    unit_price = item.price
-    item_name = item.name
-
-    base_total = unit_price * quantity
-
+    # Исходная цена товара
+    base_total = item.price * quantity
     total_multiplier = 1.0
-    abs_sum = 0
+    abs_sum = 0.0
     applied_options = {}
 
-    #### All Options ####
-    for option in product_options:
-        key = option["key"]
-        selected = selections.get(key)
+    # Получаем все опции для товара, чтобы было проще искать
+    product_options_map = {opt.name: opt for opt in item.options}
 
-        #### Radio / Select ####
-        if option["type"] in ("radio", "select") and isinstance(selected, str):
-            choice = next((c for c in option["choices"] if c["value"] == selected), None)
-            if choice and "price" in choice:
-                m, a = apply_price_adj(choice["price"])
+    for selected_option in selected_options:
+        key = selected_option["name"]
+        selected_value = selected_option["value"]
+
+        # Ищем опцию по её уникальному имени
+        option = product_options_map.get(key)
+        if not option:
+            continue
+
+        if option.type == "radio" or option.type == "select":
+            # Ищем выбранный вариант в списке вариантов опции
+            choice = next((c for c in option.choices if c.value == selected_value), None)
+
+            if choice:
+                m, a = apply_price_adj({
+                    "pct": choice.pct,
+                    "abs_cents": choice.abs_cents,
+                    "multiplier": choice.multiplier
+                })
                 total_multiplier *= m
                 abs_sum += a
-                applied_options[key] = {"value": selected, **choice["price"]}
+                applied_options[key] = {"value": selected_value}
 
-        #### CheckBoxes ####
-        elif option["type"] == "checkboxes" and isinstance(selected, list):
-            applied_options[key] = []
-            for val in selected:
-                choice = next((c for c in option["choices"] if c["value"] == val), None)
-                if choice and "price" in choice:
-                    m, a = apply_price_adj(choice["price"])
-                    total_multiplier *= m
-                    abs_sum += a
-                    applied_options[key].append({"value": val, **choice["price"]})
+        elif option.type == "slider":
+            try:
+                # Значение слайдера должно быть числом
+                slider_value = int(selected_value)
 
-        #### Slider / Number ####
-        elif option["type"] in ("slider", "number") and isinstance(selected, int):
-            pricing = option.get("pricing")
-            if pricing:
-                if pricing["mode"] == "per_unit":
-                    m, a = apply_price_adj(pricing.get("perUnit"), selected)
-                    abs_sum += a
-                    applied_options[key] = {"value": selected, **(pricing.get("perUnit", {}))}
-                elif pricing["mode"] == "tiered":
-                    tier = next((t for t in pricing["tiers"] if selected <= t["upTo"]), None)
-                    if tier and "price" in tier:
-                        m, a = apply_price_adj(tier["price"])
-                        total_multiplier *= m
-                        abs_sum += a
-                        applied_options[key] = {"value": selected, **tier["price"]}
+                # Применяем модификаторы цены, если они есть
+                m, a = apply_price_adj({
+                    "pct": 0,
+                    "abs_cents": 0,
+                    "multiplier": 1.0,
+                }, value=slider_value)
+                total_multiplier *= m
+                abs_sum += a
+                applied_options[key] = {"value": slider_value}
 
-    final_price = int((base_total * total_multiplier) + abs_sum)
+            except (ValueError, TypeError):
+                # Пропускаем, если значение некорректно
+                continue
+
+    final_price = (base_total * total_multiplier) + abs_sum
 
     return {
         "product_id": product_id,
-        "item_name": item_name,
-        "unit_price": unit_price,
+        "item_name": item.name,
+        "unit_price": item.price,
         "quantity": quantity,
         "base_total": base_total,
-        "options": applied_options,
         "final_price": final_price,
+        "applied_options": applied_options
     }

@@ -15,7 +15,7 @@ if config.config_file_name is not None:
 
 
 from app.database.session import Base
-import app.models  # здесь должны быть все модели через __init__.py
+import app.models
 
 target_metadata = Base.metadata
 

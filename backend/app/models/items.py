@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.session import Base
+
 
 class Item(Base):
     __tablename__ = "items"
@@ -13,13 +14,18 @@ class Item(Base):
     quality = Column(String)
 
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False, index=True)
-    order_items = relationship('OrderItem', back_populates='item')
-    options = relationship("ItemOption", back_populates="item", cascade="all, delete-orphan")
 
+    order_items = relationship('OrderItem', back_populates='item')
     game = relationship("Game", back_populates="items")
+
     categories = relationship(
         "Category",
         secondary="item_categories",
         back_populates="items"
     )
 
+    # 🔹 теперь связь идёт через ProductOption
+    product_options = relationship("ProductOption", back_populates="item", cascade="all, delete-orphan")
+
+    # удобное «виртуальное» свойство (только для чтения)
+    options = relationship("Option", secondary="product_options", viewonly=True)

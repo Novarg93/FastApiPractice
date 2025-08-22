@@ -4,7 +4,7 @@ from .orders import Order, OrderItem
 from .games import Game
 from .categories import Category
 from .auth import BlacklistedToken
-from .orderOptions import ItemOption, ItemOptionChoice
+from .options import Option, OptionChoice, ProductOption
 
 __all__ = [
     "User",
@@ -14,6 +14,7 @@ __all__ = [
     "Game",
     "Category",
     "BlacklistedToken",
-    "ItemOption",
-    "ItemOptionChoice",
+    "Option",
+    "optionChoice.py",
+    "ProductOption.py",
 ]
