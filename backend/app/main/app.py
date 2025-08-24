@@ -1,3 +1,4 @@
+import stripe
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,8 @@ from app.routes.orders import router as orders_router
 from app.stripe.stripe_success import router as stripe_success_router
 from app.core.settings import settings
 import app.models  # noqa: F401
+
+stripe.api_key = settings.STRIPE_API_KEY
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
