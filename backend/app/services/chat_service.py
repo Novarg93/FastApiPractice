@@ -20,6 +20,7 @@ def create_chat_for_order(db: Session, order_id: int, client_id: int, booster_id
             user_id=booster_id,
             role_in_chat="booster"
         )
+        db.add(booster_participant)
 
     db.commit()
     db.refresh(room)

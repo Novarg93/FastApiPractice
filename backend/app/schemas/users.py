@@ -1,15 +1,23 @@
-from pydantic import BaseModel, ConfigDict, constr
+from pydantic import BaseModel, ConfigDict, constr, EmailStr, field_validator
 from app.models.users import UserRole
 
 
 # Базовые
 class UserBase(BaseModel):
-    email: str
-    name: str | None = None
+    email: EmailStr
+    name: constr(min_length=4, max_length=25) | None = None
 
 class UserCreate(UserBase):
-    password: str
+    password: constr(min_length=4, max_length=50) | None = None
     role: UserRole = UserRole.USER
+
+    @field_validator("password")
+    def validate_password(cls, v: str) -> str:
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least 1 digits")
+        if not any(c.isalpha() for c in v):
+            raise ValueError("Password must contain at least 1 letter")
+        return v
 
 class UserLogin(BaseModel):
     email: str
