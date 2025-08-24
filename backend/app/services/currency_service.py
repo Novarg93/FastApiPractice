@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from app.models.items import Item
-from app.models.options import Option, OptionChoice
+from app.models.options import Option
 
 
 def apply_price_adj(price_adj: dict, value: int = 1):

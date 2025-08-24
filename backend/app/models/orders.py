@@ -1,6 +1,5 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Float, func
 from sqlalchemy.orm import relationship
-from datetime import datetime
 from app.database.session import Base
 
 class Order(Base):

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 
 from app.database.session import SessionLocal
-from app.models import Category, Game, Item, Option
-from app.schemas.items import ItemCreate, ItemRead, ItemListResponse
+from app.models import Category, Item
+from app.schemas.items import ItemRead, ItemListResponse
 
 router = APIRouter(prefix="/items", tags=["items"])
 

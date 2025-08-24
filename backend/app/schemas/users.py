@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict, constr
+from app.models.users import UserRole
 
 
 # Базовые
@@ -8,6 +9,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: UserRole = UserRole.USER
 
 class UserLogin(BaseModel):
     email: str
@@ -17,12 +19,12 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-# Чтение из ORM
 class UserRead(BaseModel):
     id: int
     email: str
     name: str | None = None
     avatar_url: str | None = None
+    role: UserRole
 
 class UserUpdate(BaseModel):
     name: constr(min_length=1, max_length=20)

@@ -4,7 +4,6 @@ from pathlib import Path
 from PIL import Image
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.functions import current_user
 
 from app.core.security import get_current_user, get_db, verify_password, hash_password
 from app.core.settings import settings
@@ -127,3 +126,5 @@ def delete_user(
     db.commit()
 
     return {"User deleted"}
+
+# Рут Ролей

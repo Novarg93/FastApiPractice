@@ -5,6 +5,7 @@ from .games import Game
 from .categories import Category
 from .auth import BlacklistedToken
 from .options import Option, OptionChoice, ProductOption
+from .chat import ChatRoom, ChatParticipant, Message, MessageType
 
 __all__ = [
     "User",

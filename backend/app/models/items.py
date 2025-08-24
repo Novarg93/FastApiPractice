@@ -24,8 +24,5 @@ class Item(Base):
         back_populates="items"
     )
 
-    # 🔹 теперь связь идёт через ProductOption
     product_options = relationship("ProductOption", back_populates="item", cascade="all, delete-orphan")
-
-    # удобное «виртуальное» свойство (только для чтения)
     options = relationship("Option", secondary="product_options", viewonly=True)
