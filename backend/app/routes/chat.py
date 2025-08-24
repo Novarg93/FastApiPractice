@@ -78,7 +78,7 @@ async def chat_ws(websocket: WebSocket, room_id: int, db: Session = Depends(get_
             }
 
             # Рассылка
-            await broadcast(room_id, data)
+            await broadcast(room_id, msg_dict)
 
 
     except WebSocketDisconnect:

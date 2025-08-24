@@ -38,7 +38,7 @@ onMounted(loadGames)
 <template>
   <section class="w-[90%] 2xl:w-[75%] mx-auto py-12 md:py-20">
     <div class="mx-auto max-w-2xl lg:max-w-none">
-    <pre>{{ games }}</pre>
+    
       <h2 class="text-2xl font-bold">Games</h2>
 
       <!-- error -->

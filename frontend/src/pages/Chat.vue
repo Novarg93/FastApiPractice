@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-import { nextTick, ref, computed } from 'vue'
+import { nextTick, ref, computed, watch } from 'vue'
 import { http } from '@/lib/http'
 import { Card, CardContent } from '@/components/ui/card'
 import Button from '@/components/ui/button/Button.vue'
@@ -31,22 +31,44 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea';
-
+import { useChatWS } from '@/composables/useChatWS'
 
 const auth = useAuthStore()
 const { isAuthenticated } = storeToRefs(auth)
+const selectedChat = ref<User | null>(null)
+const currentUserId = computed(() => auth.user?.id ?? 0)
+const roomId = computed<number | null>(() => selectedChat.value ? selectedChat.value.id : null)
+
+const wsApi = useChatWS(roomId, currentUserId, import.meta.env.VITE_WS_BASE ?? 'ws://127.0.0.1:8000')
+
+// адаптер сообщений
+const messages = computed(() => {
+  const raw = wsApi.serverMessages.value
+  return raw.map(m => ({
+    text: m.content,
+    from: m.sender_id === currentUserId.value ? 'me' : 'other' as const,
+  }))
+})
+
+const visibleMessages = computed(() => selectedChat.value ? messages.value : [])
+
+// отправка
+async function sendMessage() {
+  if (!newMessage.value.trim()) return
+  wsApi.send(newMessage.value.trim())
+  newMessage.value = ''
+  scrollToBottom()
+}
+
 // Chat section
 interface Message {
     text: string
     from: 'me' | 'other'
 }
 
-const messages = computed(() => selectedChat.value?.messages ?? [])
 
-const visibleMessages = computed(() => {
 
-    return selectedChat.value ? messages.value : []
-})
+
 
 const newMessage = ref('')
 
@@ -60,17 +82,7 @@ function scrollToBottom() {
     })
 }
 
-function sendMessage() {
-    if (!newMessage.value.trim()) return
 
-    messages.value.push({
-        text: newMessage.value,
-        from: 'me',
-    })
-    newMessage.value = ''
-
-    scrollToBottom()
-}
 
 
 
@@ -186,17 +198,8 @@ const sortedAllUsers = computed(() => {
 })
 
 const recentChats = ref<User[]>([
-    {
-        id: 100,
-        name: 'CyberGlitcher',
-        avatar: '/images/game-2.webp',
-        messages: [
-            { text: "Hey, how's it going?", from: 'other' },
-            { text: 'All good! Working now.', from: 'me' },
-            { text: 'Nice! Do you wanna play again today?', from: 'other' },
-            { text: 'Yea, I will be free in 2 hours', from: 'me' },
-        ],
-    },
+  { id: 1, name: 'Room 1 (order #1)', avatar: '/images/game-2.webp', messages: [] },
+  
 ])
 
 function deleteChat() {
@@ -230,7 +233,7 @@ const filteredRecentChats = computed<User[]>(() =>
 
 // recentChats and chatwindow mechanic
 
-const selectedChat = ref<User | null>(null)
+
 
 
 // reports
