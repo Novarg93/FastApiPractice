@@ -3,7 +3,7 @@ from typing import Optional
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
@@ -14,7 +14,7 @@ from app.models.users import UserRole
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+security = HTTPBearer(auto_error=True)
 
 # -------------------
 # Пароли
@@ -30,13 +30,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 # -------------------
 # Токен
 # -------------------
-
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     now = datetime.now(timezone.utc)
     expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire, "iat": now, "jti": str(uuid4())})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 # -------------------
 # Получение сессии БД
@@ -67,12 +67,11 @@ def decode_access_token(token: str):
 # -------------------
 # Получение текущего пользователя
 # -------------------
-
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
-    # Нет токена в запросе
+    token = credentials.credentials  # Берём сам JWT токен из "Authorization: Bearer ..."
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -121,6 +120,7 @@ def get_current_user(
 
     return user
 
+
 # -------------------
 # Зависимости Ролей
 # -------------------
@@ -133,5 +133,3 @@ def require_role(required_roles: list[UserRole]):
             )
         return user
     return role_checker
-
-

@@ -31,6 +31,7 @@ class OrderCreate(BaseModel):
 class OrderRead(BaseModel):
     id: int
     user_id: int
+    chat_id: int | None = None
     status: str
     total_price: float
     created_at: datetime

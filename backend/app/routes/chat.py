@@ -1,12 +1,15 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+import os
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Body, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Dict, List
 from jose import jwt, JWTError
 
+from app.core.security import get_current_user
 from app.core.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.database.session import SessionLocal
-from app.models.chat import MessageType, Message, ChatParticipant
+from app.models.chat import MessageType, Message, ChatParticipant, ChatRoom
 from app.models.users import User, UserRole
 from app.schemas.chat import MessageRead
 
@@ -144,3 +147,57 @@ async def chat_ws(websocket: WebSocket, room_id: int, db: Session = Depends(get_
 
     except WebSocketDisconnect:
         await disconnect(room_id, websocket)
+
+@router.get("/my/chats")
+def get_my_chats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    chats = (
+        db.query(ChatRoom)
+        .join(ChatParticipant)
+        .filter(ChatParticipant.user_id == current_user.id)
+        .all()
+    )
+
+    return [
+        {
+            "chat_id": c.id,
+            "order_id": c.order_id,
+            "last_message": c.messages[-1].content if c.messages else None,
+            "updated_at": c.messages[-1].created_at if c.messages else c.created_at,
+        }
+        for c in chats
+    ]
+
+@router.patch("/chats/{chat_id}/messages/{msg_id}")
+def edit_message(
+    chat_id: int,
+    msg_id: int,
+    new_content: str = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    msg = db.query(Message).filter(
+        Message.id == msg_id,
+        Message.room_id == chat_id
+    ).first()
+
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    # Только ADMIN и SUPPORT могут редактировать
+    if current_user.role not in [UserRole.ADMIN, UserRole.SUPPORT]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    msg.content = new_content
+    db.commit()
+    db.refresh(msg)
+
+    return {
+        "id": msg.id,
+        "sender_id": msg.sender_id,
+        "content": msg.content,
+        "type": msg.type.value,
+        "created_at": msg.created_at.isoformat()
+    }

@@ -29,11 +29,12 @@ class ItemBase(BaseModel):
 
 
 class ItemCreate(ItemBase):
-    pass
+    game_id: int   # 🔑 обязателен при создании
 
 
 class ItemRead(ItemBase):
     id: int
+    game_id: int   # 🔑 тоже возвращаем
     options: list[OptionSchema] = []
 
     model_config = {
@@ -48,3 +49,12 @@ class ItemListResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+class ItemUpdate(BaseModel):
+    name: str | None = None
+    price: float | None = None
+    image: str | None = None
+    quantity: int | None = None
+    quality: Quality | None = None
+    game_id: int | None = None  # 🔑 можно обновлять
